@@ -4,27 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LegalAI - Professional Legal Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_neon.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS FIXES: Ocean Blue Theme & Reveal Animation */
+        :root {
+            --accent: #3b82f6;        /* ocean blue */
+            --accent-2: #06b6d4;      /* cyan glow */
+            --accent-dark: #0b1220;   /* deep navy */
+            --text-main: #e6f0ff;
+            --muted: #9aa7bd;
+            --shadow-neon: 0 8px 40px rgba(59,130,246,0.25);
+        }
+
+        /* --- NEW REFRESH ANIMATIONS --- */
+        
+        /* Reveal interface elements after a small delay */
+        .sidebar, .chat-header, .input-container, .feature-cards {
+            opacity: 0;
+            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 0.6s; 
+        }
+
+        .sidebar { transform: translateX(-30px); }
+        .chat-header { transform: translateY(-20px); }
+        .input-container { transform: translateY(20px); }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translate(0); }
+        }
+
+        /* The Hero Ball Bounce */
+        .welcome-message .orb-container {
+            perspective: 1000px;
+        }
+
+        .welcome-message .orb {
+            animation: heroBounce 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+
+        @keyframes heroBounce {
+            0% { transform: scale(0) translateY(100px); filter: blur(20px); opacity: 0; }
+            60% { transform: scale(1.1) translateY(-20px); filter: blur(0); opacity: 1; }
+            100% { transform: scale(1) translateY(0); }
+        }
+
+        /* Staggered entry for chat items */
+        .chat-item {
+            opacity: 0;
+            animation: itemReveal 0.4s ease-out forwards;
+        }
+
+        @keyframes itemReveal {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .orb-inner {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
+            box-shadow: 0 0 60px rgba(59,130,246,0.45), 0 0 120px rgba(6,182,212,0.35) !important;
+        }
+
+        /* Ensure Orb Glow matches theme */
+        .orb-glow {
+            background: radial-gradient(circle, var(--accent), transparent 70%) !important;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
-                    <img src="{{ url_for('static', filename='17.png') }}" alt="LegalAI Logo" style="height: 250px; width: 250px; object-fit: contain;">
+                <div class="brand">
+                    <div class="brand-icon" style="background: linear-gradient(135deg, var(--accent), var(--accent-2));">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <span class="brand-name" style="background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">LegalAI</span>
                 </div>
                 <button class="new-chat-btn" id="newChatBtn">
                     <i class="fas fa-plus"></i>
-                    New Chat
+                    <span>New Chat</span>
                 </button>
             </div>
             
-            <div class="chat-history" id="chatHistory">
-                <div class="loading">Loading chat history...</div>
+            <div class="sidebar-section">
+                <div class="section-label">Features</div>
+                <div class="feature-list">
+                    <div class="feature-item active">
+                        <i class="fas fa-comments"></i>
+                        <span>Chat</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-archive"></i>
+                        <span>Archived</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-book"></i>
+                        <span>Library</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">Consultations</div>
+                <div class="chat-history" id="chatHistory">
+                    <div class="loading">Loading chat history...</div>
+                </div>
             </div>
             
             <div class="sidebar-footer">
@@ -35,74 +123,60 @@
             </div>
         </div>
 
-        <!-- Main Chat Area -->
         <div class="main-content">
-            <!-- Header -->
             <div class="chat-header">
                 <button class="sidebar-toggle" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="header-info">
-                    <h1>AI-Powered Legal Research Tool </h1>
-                    <p>By Oryzed for you</p>
+                    <div class="model-selector">
+                        <span>LegalAI v4.0</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
                 </div>
-                <div class="session-info" id="sessionInfo">
-                    <span class="session-indicator">
-                        <i class="fas fa-circle"></i>
-                        New Session
-                    </span>
+                <div class="header-actions">
+                    <button class="icon-btn" disabled title="Settings coming soon">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="icon-btn" disabled title="Download coming soon">
+                        <i class="fas fa-download"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Chat Messages -->
             <div class="chat-messages" id="chatMessages">
-                <div class="welcome-message">
-                    <div class="welcome-icon">
-                        <i class="fas fa-gavel"></i>
-                    </div>
-                    <h3>Welcome to AI-Powered Legal Research Tool</h3>
-                    <p>I'm your professional legal assistant, ready to provide detailed legal guidance and analysis.</p>
-                    <div class="example-questions">
-                        <p><strong>I can help you with:</strong></p>
-                        <ul>
-                            <li>Legal case analysis and research</li>
-                            <li>Statutory interpretation and references</li>
-                            <li>Landmark case citations and precedents</li>
-                            <li>Legal documentation guidance</li>
-                            <li>Constitutional and civil law matters</li>
-                        </ul>
-                    </div>
                 </div>
-            </div>
 
-            <!-- Input Area -->
             <div class="input-container">
                 <div class="input-wrapper">
+                    <button class="input-action-btn" disabled title="Attach - coming soon">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
                     <textarea 
                         id="messageInput" 
-                        placeholder="Describe your legal query in detail..."
+                        placeholder="Ask Anything..."
                         rows="1"
                         maxlength="2000"
                     ></textarea>
-                    <button id="sendButton" disabled>
+                    <button class="input-action-btn" disabled title="Options - coming soon">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <button id="sendButton" disabled style="background: linear-gradient(135deg, var(--accent), var(--accent-2));">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
                 <div class="input-footer">
                     <span class="char-count" id="charCount">0/2000</span>
-                    <span class="legal-notice">
-                        <i class="fas fa-shield-alt"></i>
-                        Confidential legal consultation
-                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
-            <i class="fas fa-gavel fa-spin"></i>
+            <div class="spinner-orb">
+                <div class="spinner-inner"></div>
+            </div>
             <p>Analyzing your legal query...</p>
         </div>
     </div>
@@ -115,6 +189,23 @@
                 this.initializeApp();
             }
 
+            typeText(element, text, speed = 15) {
+                let index = 0;
+                element.innerHTML = "";
+                const container = $('#chatMessages');
+
+                const interval = setInterval(() => {
+                    if (index < text.length) {
+                        element.innerHTML += text.charAt(index);
+                        index++;
+                        container.scrollTop(container[0].scrollHeight);
+                    } else {
+                        clearInterval(interval);
+                        element.innerHTML = DOMPurify.sanitize(marked.parse(text));
+                    }
+                }, speed);
+            }
+
             initializeApp() {
                 this.bindEvents();
                 this.loadChatHistory();
@@ -122,16 +213,10 @@
             }
 
             bindEvents() {
-                // Sidebar toggle
                 $('#sidebarToggle').click(() => this.toggleSidebar());
-                
-                // New chat button
                 $('#newChatBtn').click(() => this.createNewSession());
-                
-                // Send message
                 $('#sendButton').click(() => this.sendMessage());
                 
-                // Input handling
                 $('#messageInput').on('input', (e) => this.handleInput(e));
                 $('#messageInput').on('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -140,7 +225,6 @@
                     }
                 });
 
-                // Auto-resize textarea
                 $('#messageInput').on('input', function() {
                     this.style.height = 'auto';
                     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
@@ -176,7 +260,6 @@
                         this.currentSessionId = data.session_id;
                         this.clearChat();
                         this.loadChatHistory();
-                        $('#sessionInfo span').html('<i class="fas fa-circle"></i> New Session');
                     }
                 } catch (error) {
                     console.error('Error creating new session:', error);
@@ -196,10 +279,11 @@
                         return;
                     }
                     
-                    data.sessions.forEach(session => {
+                    data.sessions.forEach((session, index) => {
                         const sessionElement = $(`
                             <div class="chat-item ${session.id === this.currentSessionId ? 'active' : ''}" 
-                                 data-session-id="${session.id}">
+                                 data-session-id="${session.id}"
+                                 style="animation-delay: ${0.8 + (index * 0.1)}s"> 
                                 <div class="chat-item-content">
                                     <div class="chat-title">${session.title}</div>
                                     <div class="chat-date">${new Date(session.updated_at).toLocaleDateString()}</div>
@@ -220,28 +304,23 @@
                     });
                 } catch (error) {
                     console.error('Error loading chat history:', error);
-                    $('#chatHistory').html('<div class="error">Failed to load chat history</div>');
                 }
             }
 
             async loadSession(sessionId) {
                 try {
                     this.currentSessionId = sessionId;
-                    
                     const response = await fetch(`/api/chat/${sessionId}`);
                     const data = await response.json();
                     
-                    this.clearChat();
+                    this.clearChat(false); // Disable welcome ball for history load
                     
                     data.history.forEach(message => {
                         this.displayMessage(message.content, message.role, false, message.id, message.timestamp);
                     });
                     
-                    // Update active session in sidebar
                     $('.chat-item').removeClass('active');
                     $(`.chat-item[data-session-id="${sessionId}"]`).addClass('active');
-                    
-                    $('#sessionInfo span').html('<i class="fas fa-circle" style="color: #10b981;"></i> Active Session');
                     
                 } catch (error) {
                     console.error('Error loading session:', error);
@@ -250,16 +329,12 @@
 
             async deleteSession(sessionId) {
                 if (!confirm('Are you sure you want to delete this consultation?')) return;
-                
                 try {
                     const response = await fetch(`/api/delete_session/${sessionId}`, {
                         method: 'DELETE'
                     });
-                    
                     if (response.ok) {
-                        if (sessionId === this.currentSessionId) {
-                            this.createNewSession();
-                        }
+                        if (sessionId === this.currentSessionId) this.createNewSession();
                         this.loadChatHistory();
                     }
                 } catch (error) {
@@ -279,7 +354,6 @@
                 $('#sendButton').prop('disabled', true);
                 $('#charCount').text('0/2000');
                 
-                // Display user message
                 this.displayMessage(message, 'user');
                 this.showLoading();
                 
@@ -293,88 +367,90 @@
                     const data = await response.json();
                     
                     if (data.status === 'success') {
-                        this.displayMessage(data.response, 'assistant');
-                        this.loadChatHistory(); // Refresh sidebar
+                        this.displayMessage(data.response, 'assistant', true);
+                        this.loadChatHistory();
                     } else {
-                        this.displayMessage('I apologize, but I encountered an error processing your request. Please try again.', 'assistant', true);
+                        this.displayMessage('Error processing request.', 'assistant', false, null, null);
                     }
                 } catch (error) {
-                    console.error('Error sending message:', error);
-                    this.displayMessage('Network error. Please check your connection and try again.', 'assistant', true);
+                    this.displayMessage('Network error.', 'assistant', false, null, null);
                 } finally {
                     this.isLoading = false;
                     this.hideLoading();
                 }
             }
 
-            displayMessage(content, role, isError = false, messageId = null, timestamp = null) {
+            displayMessage(content, role, animate = false, messageId = null, timestamp = null) {
                 const messagesContainer = $('#chatMessages');
                 const welcomeMessage = messagesContainer.find('.welcome-message');
-                
-                if (welcomeMessage.length) {
-                    welcomeMessage.remove();
-                }
-                
+                if (welcomeMessage.length) welcomeMessage.remove();
+
                 const messageClass = role === 'user' ? 'user-message' : 'assistant-message';
                 const icon = role === 'user' ? 'fas fa-user' : 'fas fa-gavel';
-                const parsedContent = role === 'assistant' ? marked.parse(content) : content;
-                const timeDisplay = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
-                
-                // Add edit button for user messages
-                const editButton = role === 'user' && messageId ? `
-                    <button class="edit-message-btn" data-message-id="${messageId}" title="Edit message">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                ` : '';
-                
+                const timeDisplay = timestamp
+                    ? new Date(timestamp).toLocaleTimeString()
+                    : new Date().toLocaleTimeString();
+
                 const messageElement = $(`
-                    <div class="message ${messageClass} ${isError ? 'error' : ''}" data-message-id="${messageId || ''}">
+                    <div class="message ${messageClass}">
                         <div class="message-icon">
                             <i class="${icon}"></i>
                         </div>
-                        <div class="message-content">
-                            ${parsedContent}
-                        </div>
+                        <div class="message-content"></div>
                         <div class="message-actions">
-                            ${editButton}
-                            <div class="message-time">
-                                ${timeDisplay}
-                            </div>
+                            <span class="message-time">${timeDisplay}</span>
                         </div>
                     </div>
                 `);
-                
-                // Bind edit button click event
-                if (role === 'user' && messageId) {
-                    messageElement.find('.edit-message-btn').click(() => this.editMessage(messageId, content));
-                }
-                
+
                 messagesContainer.append(messageElement);
                 messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+
+                const contentEl = messageElement.find('.message-content')[0];
+
+                if (role === 'assistant' && animate) {
+                    this.typeText(contentEl, content, 15);
+                } else {
+                    contentEl.innerHTML = DOMPurify.sanitize(marked.parse(content));
+                }
             }
 
-            clearChat() {
+            clearChat(showWelcome = true) {
+                if (!showWelcome) {
+                    $('#chatMessages').empty();
+                    return;
+                }
                 $('#chatMessages').html(`
                     <div class="welcome-message">
-                        <div class="welcome-icon">
-                            <i class="fas fa-gavel"></i>
+                        <div class="orb-container">
+                            <div class="orb">
+                                <div class="orb-inner"></div>
+                                <div class="orb-glow"></div>
+                            </div>
                         </div>
-                        <h3>New Legal Consultation</h3>
-                        <p>How can I assist you with your legal query today?</p>
+                        <h2 class="welcome-title">What Legal Precedent Shall We Set Today?</h2>
+                        <div class="quick-actions">
+                            <button class="quick-action-btn">
+                                <i class="fas fa-search"></i>
+                                <span>Legal Research</span>
+                            </button>
+                            <button class="quick-action-btn">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Case Analysis</span>
+                            </button>
+                            <button class="quick-action-btn">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Document Review</span>
+                            </button>
+                        </div>
                     </div>
                 `);
             }
 
-            showLoading() {
-                $('#loadingOverlay').addClass('show');
-            }
-
-            hideLoading() {
-                $('#loadingOverlay').removeClass('show');
-            }
+            showLoading() { $('#loadingOverlay').addClass('show'); }
+            hideLoading() { $('#loadingOverlay').removeClass('show'); }
 
             editMessage(messageId, currentContent) {
-                // Create edit modal
                 const modal = $(`
                     <div class="edit-modal-overlay" id="editModal">
                         <div class="edit-modal">
@@ -399,14 +475,11 @@
                 $('body').append(modal);
                 const textarea = $('#editMessageInput');
                 
-                // Auto-resize and character count
                 textarea.on('input', function() {
                     this.style.height = 'auto';
                     this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-                    
                     const charCount = this.value.length;
                     $('.edit-char-count').text(`${charCount}/2000`);
-                    
                     const saveBtn = $('.btn-save');
                     if (this.value.trim() && this.value.trim() !== currentContent.trim()) {
                         saveBtn.prop('disabled', false);
@@ -415,35 +488,14 @@
                     }
                 });
 
-                // Initial setup
                 textarea.trigger('input');
                 textarea.focus();
-                textarea[0].setSelectionRange(textarea.val().length, textarea.val().length);
 
-                // Event handlers
-                $('.edit-modal-close, .btn-cancel').click(() => {
-                    modal.remove();
-                });
-
+                $('.edit-modal-close, .btn-cancel').click(() => modal.remove());
                 $('.btn-save').click(() => {
                     const newContent = textarea.val().trim();
                     if (newContent && newContent !== currentContent.trim()) {
                         this.saveEditedMessage(messageId, newContent);
-                        modal.remove();
-                    }
-                });
-
-                // ESC key to close
-                $(document).on('keydown.editModal', (e) => {
-                    if (e.key === 'Escape') {
-                        modal.remove();
-                        $(document).off('keydown.editModal');
-                    }
-                });
-
-                // Close on outside click
-                modal.click((e) => {
-                    if (e.target === modal[0]) {
                         modal.remove();
                     }
                 });
@@ -452,35 +504,27 @@
             async saveEditedMessage(messageId, newContent) {
                 try {
                     this.showLoading();
-                    
                     const response = await fetch(`/api/chat/${this.currentSessionId}/edit/${messageId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: newContent })
                     });
-                    
                     const data = await response.json();
-                    
                     if (data.status === 'success') {
-                        // Reload the session to show updated messages
                         this.loadSession(this.currentSessionId);
-                        this.loadChatHistory(); // Refresh sidebar
-                    } else {
-                        alert('Failed to edit message. Please try again.');
+                        this.loadChatHistory();
                     }
                 } catch (error) {
                     console.error('Error editing message:', error);
-                    alert('Network error. Please check your connection and try again.');
                 } finally {
                     this.hideLoading();
                 }
             }
         }
 
-        // Initialize the app when DOM is ready
         $(document).ready(() => {
             new LegalChatApp();
         });
     </script>
 </body>
-</html> 
+</html>

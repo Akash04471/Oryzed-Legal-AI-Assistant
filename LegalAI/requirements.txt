@@ -2,3 +2,8 @@ flask
 python-dotenv
 agno
 groq
+duckduckgo-search
+requests
+beautifulsoup4
+flask-cors
+typing-extensions
