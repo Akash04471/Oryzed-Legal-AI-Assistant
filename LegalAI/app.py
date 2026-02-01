@@ -21,8 +21,10 @@ if not os.environ.get("GROQ_API_KEY"):
     raise ValueError("GROQ_API_KEY is not set. Please set it in the environment or in a .env file.")
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here")
 
+print("GROQ_API_KEY =", os.environ.get("GROQ_API_KEY"))
 # Database setup
 DB_PATH = "legal_chat.db"
 

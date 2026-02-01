@@ -3,528 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LegalAI - Professional Legal Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_neon.css') }}">
+    <title>LegalAI – Professional Legal Assistant</title>
+
+    <!-- MAIN STYLES -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_final.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- LIBRARIES -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* CSS FIXES: Ocean Blue Theme & Reveal Animation */
-        :root {
-            --accent: #3b82f6;        /* ocean blue */
-            --accent-2: #06b6d4;      /* cyan glow */
-            --accent-dark: #0b1220;   /* deep navy */
-            --text-main: #e6f0ff;
-            --muted: #9aa7bd;
-            --shadow-neon: 0 8px 40px rgba(59,130,246,0.25);
-        }
-
-        /* --- NEW REFRESH ANIMATIONS --- */
-        
-        /* Reveal interface elements after a small delay */
-        .sidebar, .chat-header, .input-container, .feature-cards {
-            opacity: 0;
-            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            animation-delay: 0.6s; 
-        }
-
-        .sidebar { transform: translateX(-30px); }
-        .chat-header { transform: translateY(-20px); }
-        .input-container { transform: translateY(20px); }
-
-        @keyframes slideIn {
-            to { opacity: 1; transform: translate(0); }
-        }
-
-        /* The Hero Ball Bounce */
-        .welcome-message .orb-container {
-            perspective: 1000px;
-        }
-
-        .welcome-message .orb {
-            animation: heroBounce 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-        }
-
-        @keyframes heroBounce {
-            0% { transform: scale(0) translateY(100px); filter: blur(20px); opacity: 0; }
-            60% { transform: scale(1.1) translateY(-20px); filter: blur(0); opacity: 1; }
-            100% { transform: scale(1) translateY(0); }
-        }
-
-        /* Staggered entry for chat items */
-        .chat-item {
-            opacity: 0;
-            animation: itemReveal 0.4s ease-out forwards;
-        }
-
-        @keyframes itemReveal {
-            from { transform: translateX(-10px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .orb-inner {
-            background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
-            box-shadow: 0 0 60px rgba(59,130,246,0.45), 0 0 120px rgba(6,182,212,0.35) !important;
-        }
-
-        /* Ensure Orb Glow matches theme */
-        .orb-glow {
-            background: radial-gradient(circle, var(--accent), transparent 70%) !important;
-        }
-    </style>
 </head>
-<body>
-    <div class="app-container">
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="brand">
-                    <div class="brand-icon" style="background: linear-gradient(135deg, var(--accent), var(--accent-2));">
-                        <i class="fas fa-gavel"></i>
-                    </div>
-                    <span class="brand-name" style="background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">LegalAI</span>
+
+<body class="loading">
+
+<!-- =====================================================
+     PRELOADER – GAVEL ANIMATION (MUST BE FIRST IN BODY)
+===================================================== -->
+<div id="preloader">
+  <svg id="gavel-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
+
+    <defs>
+      <linearGradient id="handleGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#4c1d95"/>
+        <stop offset="50%" stop-color="#7c3aed"/>
+        <stop offset="100%" stop-color="#312e81"/>
+      </linearGradient>
+
+      <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#60a5fa"/>
+        <stop offset="100%" stop-color="#1e3a8a"/>
+      </linearGradient>
+
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    <!-- SHADOW -->
+    <ellipse cx="400" cy="480" rx="240" ry="32"
+             fill="rgba(0,0,0,0.55)" />
+
+    <!-- BASE -->
+    <rect x="230" y="430" width="340" height="55" rx="14"
+          fill="#0f172a" stroke="#3b82f6" stroke-width="2"
+          filter="url(#glow)">
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="1 1; 1 0.82; 1 1"
+        keyTimes="0;0.2;1"
+        dur="1.2s"
+        repeatCount="indefinite"/>
+    </rect>
+
+    <!-- GAVEL -->
+    <g id="gavel" filter="url(#glow)" transform-origin="560px 220px">
+
+      <!-- HANDLE -->
+      <rect x="360" y="210" width="360" height="32" rx="14"
+            fill="url(#handleGrad)" />
+
+      <!-- HEAD -->
+      <rect x="300" y="185" width="140" height="80" rx="18"
+            fill="url(#headGrad)" />
+    </g>
+
+    <!-- HIT ANIMATION -->
+    <animateTransform
+      xlink:href="#gavel"
+      attributeName="transform"
+      type="rotate"
+      values="-42 560 220; 0 560 350; -10 560 300; 0 560 300"
+      keyTimes="0;0.42;0.65;1"
+      dur="1.2s"
+      repeatCount="indefinite"/>
+  </svg>
+
+  <!-- SOUND -->
+  <audio id="gavelSound" src="/static/gavel-hit.mp3" preload="auto"></audio>
+</div>
+
+<!-- =====================================================
+     APP CONTAINER
+===================================================== -->
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-gavel"></i></div>
+                <span class="brand-name">LegalAI</span>
+            </div>
+
+            <button class="new-chat-btn" id="newChatBtn">
+                <i class="fas fa-plus"></i> New Consultation
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="section-label">Consultations</div>
+            <div class="chat-history" id="chatHistory">
+                <div class="loading">Loading consultations…</div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <small>
+                <i class="fas fa-info-circle"></i>
+                For informational purposes only. Not legal advice.
+            </small>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+        <header class="chat-header">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="model-selector">
+                LegalAI v4.0
+            </div>
+        </header>
+
+        <!-- CHAT -->
+        <section class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <div class="orb">
+                    <div class="orb-inner"></div>
                 </div>
-                <button class="new-chat-btn" id="newChatBtn">
-                    <i class="fas fa-plus"></i>
-                    <span>New Chat</span>
+                <h2>What legal issue can I help you with today?</h2>
+            </div>
+        </section>
+
+        <!-- INPUT -->
+        <footer class="input-container">
+            <div class="input-wrapper">
+                <textarea id="messageInput"
+                          placeholder="Describe your legal issue…"
+                          rows="1"></textarea>
+                <button id="sendButton" disabled>
+                    <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
-            
-            <div class="sidebar-section">
-                <div class="section-label">Features</div>
-                <div class="feature-list">
-                    <div class="feature-item active">
-                        <i class="fas fa-comments"></i>
-                        <span>Chat</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-archive"></i>
-                        <span>Archived</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-book"></i>
-                        <span>Library</span>
-                    </div>
-                </div>
+            <div class="input-footer">
+                <span id="charCount">0/2000</span>
             </div>
+        </footer>
+    </main>
+</div>
 
-            <div class="sidebar-section">
-                <div class="section-label">Consultations</div>
-                <div class="chat-history" id="chatHistory">
-                    <div class="loading">Loading chat history...</div>
-                </div>
-            </div>
-            
-            <div class="sidebar-footer">
-                <div class="disclaimer">
-                    <i class="fas fa-info-circle"></i>
-                    <small>For informational purposes only. Not legal advice.</small>
-                </div>
-            </div>
-        </div>
+<!-- MAIN SCRIPT -->
+<script src="{{ url_for('static', filename='legal_app.js') }}"></script>
 
-        <div class="main-content">
-            <div class="chat-header">
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="header-info">
-                    <div class="model-selector">
-                        <span>LegalAI v4.0</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn" disabled title="Settings coming soon">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                    <button class="icon-btn" disabled title="Download coming soon">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="chat-messages" id="chatMessages">
-                </div>
-
-            <div class="input-container">
-                <div class="input-wrapper">
-                    <button class="input-action-btn" disabled title="Attach - coming soon">
-                        <i class="fas fa-paperclip"></i>
-                    </button>
-                    <textarea 
-                        id="messageInput" 
-                        placeholder="Ask Anything..."
-                        rows="1"
-                        maxlength="2000"
-                    ></textarea>
-                    <button class="input-action-btn" disabled title="Options - coming soon">
-                        <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    <button id="sendButton" disabled style="background: linear-gradient(135deg, var(--accent), var(--accent-2));">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-                <div class="input-footer">
-                    <span class="char-count" id="charCount">0/2000</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
-            <div class="spinner-orb">
-                <div class="spinner-inner"></div>
-            </div>
-            <p>Analyzing your legal query...</p>
-        </div>
-    </div>
-
-    <script>
-        class LegalChatApp {
-            constructor() {
-                this.currentSessionId = null;
-                this.isLoading = false;
-                this.initializeApp();
-            }
-
-            typeText(element, text, speed = 15) {
-                let index = 0;
-                element.innerHTML = "";
-                const container = $('#chatMessages');
-
-                const interval = setInterval(() => {
-                    if (index < text.length) {
-                        element.innerHTML += text.charAt(index);
-                        index++;
-                        container.scrollTop(container[0].scrollHeight);
-                    } else {
-                        clearInterval(interval);
-                        element.innerHTML = DOMPurify.sanitize(marked.parse(text));
-                    }
-                }, speed);
-            }
-
-            initializeApp() {
-                this.bindEvents();
-                this.loadChatHistory();
-                this.createNewSession();
-            }
-
-            bindEvents() {
-                $('#sidebarToggle').click(() => this.toggleSidebar());
-                $('#newChatBtn').click(() => this.createNewSession());
-                $('#sendButton').click(() => this.sendMessage());
-                
-                $('#messageInput').on('input', (e) => this.handleInput(e));
-                $('#messageInput').on('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        this.sendMessage();
-                    }
-                });
-
-                $('#messageInput').on('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                });
-            }
-
-            toggleSidebar() {
-                $('#sidebar').toggleClass('collapsed');
-            }
-
-            handleInput(e) {
-                const text = e.target.value;
-                const charCount = text.length;
-                $('#charCount').text(`${charCount}/2000`);
-                
-                const sendBtn = $('#sendButton');
-                if (text.trim() && !this.isLoading) {
-                    sendBtn.prop('disabled', false);
-                } else {
-                    sendBtn.prop('disabled', true);
-                }
-            }
-
-            async createNewSession() {
-                try {
-                    const response = await fetch('/api/new_session', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        this.currentSessionId = data.session_id;
-                        this.clearChat();
-                        this.loadChatHistory();
-                    }
-                } catch (error) {
-                    console.error('Error creating new session:', error);
-                }
-            }
-
-            async loadChatHistory() {
-                try {
-                    const response = await fetch('/api/sessions');
-                    const data = await response.json();
-                    
-                    const historyContainer = $('#chatHistory');
-                    historyContainer.empty();
-                    
-                    if (data.sessions.length === 0) {
-                        historyContainer.html('<div class="no-history">No previous consultations</div>');
-                        return;
-                    }
-                    
-                    data.sessions.forEach((session, index) => {
-                        const sessionElement = $(`
-                            <div class="chat-item ${session.id === this.currentSessionId ? 'active' : ''}" 
-                                 data-session-id="${session.id}"
-                                 style="animation-delay: ${0.8 + (index * 0.1)}s"> 
-                                <div class="chat-item-content">
-                                    <div class="chat-title">${session.title}</div>
-                                    <div class="chat-date">${new Date(session.updated_at).toLocaleDateString()}</div>
-                                </div>
-                                <button class="delete-chat" data-session-id="${session.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        `);
-                        
-                        sessionElement.find('.chat-item-content').click(() => this.loadSession(session.id));
-                        sessionElement.find('.delete-chat').click((e) => {
-                            e.stopPropagation();
-                            this.deleteSession(session.id);
-                        });
-                        
-                        historyContainer.append(sessionElement);
-                    });
-                } catch (error) {
-                    console.error('Error loading chat history:', error);
-                }
-            }
-
-            async loadSession(sessionId) {
-                try {
-                    this.currentSessionId = sessionId;
-                    const response = await fetch(`/api/chat/${sessionId}`);
-                    const data = await response.json();
-                    
-                    this.clearChat(false); // Disable welcome ball for history load
-                    
-                    data.history.forEach(message => {
-                        this.displayMessage(message.content, message.role, false, message.id, message.timestamp);
-                    });
-                    
-                    $('.chat-item').removeClass('active');
-                    $(`.chat-item[data-session-id="${sessionId}"]`).addClass('active');
-                    
-                } catch (error) {
-                    console.error('Error loading session:', error);
-                }
-            }
-
-            async deleteSession(sessionId) {
-                if (!confirm('Are you sure you want to delete this consultation?')) return;
-                try {
-                    const response = await fetch(`/api/delete_session/${sessionId}`, {
-                        method: 'DELETE'
-                    });
-                    if (response.ok) {
-                        if (sessionId === this.currentSessionId) this.createNewSession();
-                        this.loadChatHistory();
-                    }
-                } catch (error) {
-                    console.error('Error deleting session:', error);
-                }
-            }
-
-            async sendMessage() {
-                const messageInput = $('#messageInput');
-                const message = messageInput.val().trim();
-                
-                if (!message || this.isLoading) return;
-                
-                this.isLoading = true;
-                messageInput.val('');
-                messageInput.css('height', 'auto');
-                $('#sendButton').prop('disabled', true);
-                $('#charCount').text('0/2000');
-                
-                this.displayMessage(message, 'user');
-                this.showLoading();
-                
-                try {
-                    const response = await fetch(`/api/chat/${this.currentSessionId}/message`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.status === 'success') {
-                        this.displayMessage(data.response, 'assistant', true);
-                        this.loadChatHistory();
-                    } else {
-                        this.displayMessage('Error processing request.', 'assistant', false, null, null);
-                    }
-                } catch (error) {
-                    this.displayMessage('Network error.', 'assistant', false, null, null);
-                } finally {
-                    this.isLoading = false;
-                    this.hideLoading();
-                }
-            }
-
-            displayMessage(content, role, animate = false, messageId = null, timestamp = null) {
-                const messagesContainer = $('#chatMessages');
-                const welcomeMessage = messagesContainer.find('.welcome-message');
-                if (welcomeMessage.length) welcomeMessage.remove();
-
-                const messageClass = role === 'user' ? 'user-message' : 'assistant-message';
-                const icon = role === 'user' ? 'fas fa-user' : 'fas fa-gavel';
-                const timeDisplay = timestamp
-                    ? new Date(timestamp).toLocaleTimeString()
-                    : new Date().toLocaleTimeString();
-
-                const messageElement = $(`
-                    <div class="message ${messageClass}">
-                        <div class="message-icon">
-                            <i class="${icon}"></i>
-                        </div>
-                        <div class="message-content"></div>
-                        <div class="message-actions">
-                            <span class="message-time">${timeDisplay}</span>
-                        </div>
-                    </div>
-                `);
-
-                messagesContainer.append(messageElement);
-                messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
-
-                const contentEl = messageElement.find('.message-content')[0];
-
-                if (role === 'assistant' && animate) {
-                    this.typeText(contentEl, content, 15);
-                } else {
-                    contentEl.innerHTML = DOMPurify.sanitize(marked.parse(content));
-                }
-            }
-
-            clearChat(showWelcome = true) {
-                if (!showWelcome) {
-                    $('#chatMessages').empty();
-                    return;
-                }
-                $('#chatMessages').html(`
-                    <div class="welcome-message">
-                        <div class="orb-container">
-                            <div class="orb">
-                                <div class="orb-inner"></div>
-                                <div class="orb-glow"></div>
-                            </div>
-                        </div>
-                        <h2 class="welcome-title">What Legal Precedent Shall We Set Today?</h2>
-                        <div class="quick-actions">
-                            <button class="quick-action-btn">
-                                <i class="fas fa-search"></i>
-                                <span>Legal Research</span>
-                            </button>
-                            <button class="quick-action-btn">
-                                <i class="fas fa-lightbulb"></i>
-                                <span>Case Analysis</span>
-                            </button>
-                            <button class="quick-action-btn">
-                                <i class="fas fa-file-alt"></i>
-                                <span>Document Review</span>
-                            </button>
-                        </div>
-                    </div>
-                `);
-            }
-
-            showLoading() { $('#loadingOverlay').addClass('show'); }
-            hideLoading() { $('#loadingOverlay').removeClass('show'); }
-
-            editMessage(messageId, currentContent) {
-                const modal = $(`
-                    <div class="edit-modal-overlay" id="editModal">
-                        <div class="edit-modal">
-                            <div class="edit-modal-header">
-                                <h3><i class="fas fa-edit"></i> Edit Legal Query</h3>
-                                <button class="edit-modal-close">&times;</button>
-                            </div>
-                            <div class="edit-modal-body">
-                                <textarea id="editMessageInput" placeholder="Edit your legal query...">${currentContent}</textarea>
-                                <div class="edit-modal-footer">
-                                    <span class="edit-char-count">0/2000</span>
-                                    <div class="edit-modal-buttons">
-                                        <button class="btn-cancel">Cancel</button>
-                                        <button class="btn-save" disabled>Save & Regenerate</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `);
-
-                $('body').append(modal);
-                const textarea = $('#editMessageInput');
-                
-                textarea.on('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-                    const charCount = this.value.length;
-                    $('.edit-char-count').text(`${charCount}/2000`);
-                    const saveBtn = $('.btn-save');
-                    if (this.value.trim() && this.value.trim() !== currentContent.trim()) {
-                        saveBtn.prop('disabled', false);
-                    } else {
-                        saveBtn.prop('disabled', true);
-                    }
-                });
-
-                textarea.trigger('input');
-                textarea.focus();
-
-                $('.edit-modal-close, .btn-cancel').click(() => modal.remove());
-                $('.btn-save').click(() => {
-                    const newContent = textarea.val().trim();
-                    if (newContent && newContent !== currentContent.trim()) {
-                        this.saveEditedMessage(messageId, newContent);
-                        modal.remove();
-                    }
-                });
-            }
-
-            async saveEditedMessage(messageId, newContent) {
-                try {
-                    this.showLoading();
-                    const response = await fetch(`/api/chat/${this.currentSessionId}/edit/${messageId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: newContent })
-                    });
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        this.loadSession(this.currentSessionId);
-                        this.loadChatHistory();
-                    }
-                } catch (error) {
-                    console.error('Error editing message:', error);
-                } finally {
-                    this.hideLoading();
-                }
-            }
-        }
-
-        $(document).ready(() => {
-            new LegalChatApp();
-        });
-    </script>
 </body>
 </html>
