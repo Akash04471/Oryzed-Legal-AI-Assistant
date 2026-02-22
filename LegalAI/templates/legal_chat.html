@@ -37,7 +37,9 @@
 
     <!-- ═══ LOADING SCREEN ═══ -->
     <div id="loadingScreen" role="status" aria-label="Loading Oryzed">
-        <canvas id="ladyJusticeCanvas" aria-hidden="true"></canvas>
+        <video id="ljLoadVideo" class="lj-load-video" autoplay muted playsinline aria-hidden="true">
+            <source src="/static/lj_video.mp4" type="video/mp4">
+        </video>
         <div class="loading-text-wrap">
             <div id="loadingBrand" class="loading-brand" aria-live="polite"></div>
             <div id="loadingStatus" class="loading-status">Awakening Judicial Intelligence…</div>
@@ -61,15 +63,9 @@
     <aside id="chatSidebar" class="chat-sidebar" aria-label="Consultation history" hidden>
         <div class="sidebar-inner">
             <div class="sidebar-header">
-                <div class="sidebar-logo-wrap" aria-hidden="true">
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                        <polygon points="14,3 25,23 3,23" stroke="#4fc3f7" stroke-width="1.4"
-                            fill="rgba(26,110,181,0.18)" />
-                        <circle cx="14" cy="3" r="2.2" fill="#a8e6ff" />
-                        <circle cx="25" cy="23" r="2.2" fill="#4fc3f7" />
-                        <circle cx="3" cy="23" r="2.2" fill="#4fc3f7" />
-                    </svg>
-                </div>
+                <video class="brand-logo-video" autoplay loop muted playsinline aria-hidden="true">
+                    <source src="/static/Live_Oryzed.mp4" type="video/mp4">
+                </video>
                 <span class="sidebar-brand">Oryzed</span>
             </div>
 
@@ -91,7 +87,9 @@
         <!-- Landing nav -->
         <nav class="land-nav" aria-label="Main navigation">
             <div class="nav-brand">
-                <span class="nav-scale" aria-hidden="true">⚖</span>
+                <video class="brand-logo-video" autoplay loop muted playsinline aria-hidden="true">
+                    <source src="/static/Live_Oryzed.mp4" type="video/mp4">
+                </video>
                 <span class="nav-name">Oryzed</span>
             </div>
             <button id="btnNavEnterChat" class="btn-nav-cta" aria-label="Start consultation">
@@ -132,9 +130,10 @@
                     </button>
                 </div>
 
-                <!-- Lady Justice canvas -->
                 <div class="hero-canvas-wrap" aria-hidden="true">
-                    <canvas id="heroLJCanvas"></canvas>
+                    <video id="ljHeroVideo" class="lj-hero-video" autoplay loop muted playsinline>
+                        <source src="/static/lj_video.mp4" type="video/mp4">
+                    </video>
                     <div class="hero-canvas-glow"></div>
                 </div>
             </div>
@@ -185,7 +184,9 @@
         <section id="ctaSection" class="land-section cta-section" aria-labelledby="ctaTitle">
             <div class="cta-inner">
                 <div class="cta-emblem reveal-item" aria-hidden="true">
-                    <canvas id="ctaLJMini" width="180" height="180"></canvas>
+                    <video id="ljCtaVideo" class="lj-cta-video" autoplay loop muted playsinline>
+                        <source src="/static/lj_video.mp4" type="video/mp4">
+                    </video>
                 </div>
                 <div class="cta-text">
                     <h2 id="ctaTitle" class="cta-headline reveal-item">Ready to Begin?</h2>
@@ -206,13 +207,17 @@
      ═══════════════════════════════════════════════════════════ -->
     <div id="chatApp" class="chat-app" aria-hidden="true">
 
-        <!-- Ghost Lady Justice background -->
-        <canvas id="chatLJCanvas" class="chat-lj-canvas" aria-hidden="true"></canvas>
+        <!-- Lady Justice ghost background -->
+        <video id="ljChatVideo" class="chat-lj-video" autoplay loop muted playsinline aria-hidden="true">
+            <source src="/static/lj_video.mp4" type="video/mp4">
+        </video>
 
         <!-- Chat topbar -->
         <header class="chat-topbar" role="banner">
             <div class="topbar-brand">
-                <span class="topbar-scale" aria-hidden="true">⚖</span>
+                <video class="brand-logo-video" autoplay loop muted playsinline aria-hidden="true">
+                    <source src="/static/Live_Oryzed.mp4" type="video/mp4">
+                </video>
                 <span class="topbar-name">Oryzed</span>
             </div>
             <div class="topbar-right">

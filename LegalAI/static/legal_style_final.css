@@ -36,6 +36,87 @@
     --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* ── BRAND VIDEO LOGO ── */
+.brand-logo-video {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: transparent;
+    flex-shrink: 0;
+    /* Remove dark video background so it blends with the deep-blue page */
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 6px rgba(79, 195, 247, 0.35));
+    display: block;
+}
+
+/* Sidebar header needs left padding for hamburger clearance */
+.sidebar-header .brand-logo-video {
+    margin-left: 0;
+}
+
+/* ── LADY JUSTICE VIDEOS ── */
+
+/* 1. Loading screen video — fills the loading card, circular, blended */
+.lj-load-video {
+    width: min(400px, 82vw);
+    height: min(400px, 82vw);
+    object-fit: cover;
+    border-radius: 50%;
+    flex-shrink: 0;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 40px rgba(79, 195, 247, 0.55)) drop-shadow(0 0 90px rgba(26, 110, 181, 0.35));
+    animation: ljGlowPulse 3.5s ease-in-out infinite;
+}
+
+/* 2. Hero section video */
+.lj-hero-video {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    display: block;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 28px rgba(79, 195, 247, 0.35));
+    border-radius: 4px;
+}
+
+/* 3. CTA emblem video */
+.lj-cta-video {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 50%;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 24px rgba(79, 195, 247, 0.5));
+    animation: ljGlowPulse 4s ease-in-out infinite;
+}
+
+/* 4. Chat ghost background */
+.chat-lj-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(680px, 96vw);
+    height: auto;
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: screen;
+}
+
+@keyframes ljGlowPulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 30px rgba(79, 195, 247, 0.45)) drop-shadow(0 0 60px rgba(26, 110, 181, 0.25));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 65px rgba(79, 195, 247, 0.8)) drop-shadow(0 0 110px rgba(26, 110, 181, 0.55));
+    }
+}
+
 /* ── RESET ── */
 *,
 *::before,
@@ -866,7 +947,6 @@ body {
 }
 
 /* ── CTA Section ── */
-.cta-section {}
 
 .cta-inner {
     display: flex;
