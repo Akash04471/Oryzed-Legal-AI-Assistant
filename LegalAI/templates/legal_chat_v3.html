@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LegalAI — Judicial Cosmos AI Legal Assistant. Ask about constitutional law, contracts, case law, and more.">
+    <title>LEGAL AI – Judicial Cosmos Assistant</title>
+
+    <!-- GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- GSAP 3.x + ScrollTrigger (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <!-- CORE STYLES (v2) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_final_v2.css') }}">
+
+    <!-- 2026 ANIMATION STYLES (additive) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/legal_animations.css') }}">
+</head>
+
+<body class="judicial-cosmos">
+
+<!-- ═══════════════════════════════════════════════════════
+     CONSTELLATION CANVAS (behind everything)
+════════════════════════════════════════════════════════ -->
+<canvas id="constellationCanvas" aria-hidden="true"></canvas>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCROLLYTELLING LANDING OVERLAY
+     Shown on first visit; localStorage hides on return.
+════════════════════════════════════════════════════════ -->
+<div id="landingOverlay" role="dialog" aria-modal="true" aria-label="Welcome to Legal AI">
+
+    <!-- Scroll progress line -->
+    <div class="landing-progress" aria-hidden="true"></div>
+
+    <!-- Counter-scroll micro-particles -->
+    <div id="counterParticleField" aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;"></div>
+
+    <!-- ── SECTION 1: HERO ──────────────────────────────── -->
+    <section class="landing-section landing-hero" aria-label="Hero">
+
+        <div class="hero-scales-wrap" aria-hidden="true">
+            <!-- Scales of Justice SVG — floats UPWARD as user scrolls DOWN -->
+            <svg class="hero-scales-svg" viewBox="0 0 320 320" width="220" height="220" aria-hidden="true">
+                <defs>
+                    <linearGradient id="heroGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#c9a84c;stop-opacity:1"/>
+                        <stop offset="50%" style="stop-color:#e8d5a0;stop-opacity:1"/>
+                        <stop offset="100%" style="stop-color:#4fc3f7;stop-opacity:1"/>
+                    </linearGradient>
+                    <filter id="heroGlow">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <radialGradient id="heroBg" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style="stop-color:rgba(201,168,76,0.08)"/>
+                        <stop offset="100%" style="stop-color:transparent"/>
+                    </radialGradient>
+                </defs>
+
+                <!-- Glow halo -->
+                <circle cx="160" cy="160" r="120" fill="url(#heroBg)"/>
+
+                <!-- Top ring -->
+                <circle cx="160" cy="80" r="8" fill="url(#heroGold)" filter="url(#heroGlow)"/>
+
+                <!-- Central post -->
+                <line x1="160" y1="88" x2="160" y2="150" stroke="url(#heroGold)" stroke-width="4" stroke-linecap="round"/>
+
+                <!-- Horizontal beam -->
+                <line x1="60"  y1="150" x2="260" y2="150" stroke="url(#heroGold)" stroke-width="5" stroke-linecap="round"/>
+
+                <!-- Left pan chain -->
+                <circle cx="80"  cy="150" r="5" fill="#c9a84c"/>
+                <line x1="80"  y1="155" x2="65"  y2="205" stroke="#c9a84c" stroke-width="3" stroke-linecap="round"/>
+                <line x1="65"  y1="205" x2="95"  y2="205" stroke="#c9a84c" stroke-width="3" stroke-linecap="round"/>
+                <!-- Left pan ellipse -->
+                <ellipse cx="80" cy="210" rx="30" ry="8" fill="none" stroke="#c9a84c" stroke-width="3"/>
+
+                <!-- Right pan chain -->
+                <circle cx="240" cy="150" r="5" fill="#4fc3f7"/>
+                <line x1="240" y1="155" x2="225" y2="195" stroke="#4fc3f7" stroke-width="3" stroke-linecap="round"/>
+                <line x1="225" y1="195" x2="255" y2="195" stroke="#4fc3f7" stroke-width="3" stroke-linecap="round"/>
+                <!-- Right pan ellipse -->
+                <ellipse cx="240" cy="200" rx="30" ry="8" fill="none" stroke="#4fc3f7" stroke-width="3"/>
+
+                <!-- Decorative stars -->
+                <circle cx="120" cy="110" r="1.5" fill="rgba(201,168,76,0.6)"/>
+                <circle cx="210" cy="120" r="1"   fill="rgba(79,195,247,0.5)"/>
+                <circle cx="140" cy="240" r="1.5" fill="rgba(155,89,182,0.5)"/>
+                <circle cx="190" cy="235" r="1"   fill="rgba(201,168,76,0.4)"/>
+            </svg>
+        </div>
+
+        <p class="hero-eyebrow">Judicial Cosmos · 2026</p>
+        <h1 class="hero-headline">Where Law<br>Meets Cosmos</h1>
+        <p class="hero-sub">
+            An AI legal assistant forged in the deep-space intersection of jurisprudence and intelligence.
+            Navigate constitutional law, contracts, and precedent — at the speed of thought.
+        </p>
+
+        <!-- Scroll hint -->
+        <div class="scroll-hint" aria-hidden="true">
+            <span>Scroll to explore</span>
+            <div class="scroll-hint-line"></div>
+        </div>
+    </section>
+
+    <!-- ── SECTION 2: DEBRIS FIELD ──────────────────────── -->
+    <section class="landing-section landing-debris" aria-label="Legal cosmos">
+
+        <div class="debris-section-title" aria-hidden="true">The Lexicon Drifts</div>
+
+        <!-- Debris terms injected by JS (initDebrisField) -->
+        <div class="debris-field" aria-hidden="true"></div>
+
+    </section>
+
+    <!-- ── SECTION 3: LEGAL HISTORY TIMELINE ────────────── -->
+    <section class="landing-section landing-timeline" aria-label="Legal history timeline">
+
+        <h2 class="timeline-heading">The Arc of Justice</h2>
+
+        <div class="timeline-track" role="list">
+
+            <article class="timeline-era" role="listitem" aria-label="Roman Law">
+                <div class="era-content">
+                    <span class="era-icon" aria-hidden="true">⚖️</span>
+                    <div class="era-title">Roman Law</div>
+                    <p class="era-desc">The Twelve Tables (450 BC) — the first written legal code, establishing equality before the law and codifying civic duties.</p>
+                </div>
+                <div class="era-node">
+                    <div class="era-dot"></div>
+                    <div class="era-year">450 BC</div>
+                </div>
+                <div class="era-empty" aria-hidden="true"></div>
+            </article>
+
+            <article class="timeline-era" role="listitem" aria-label="Magna Carta">
+                <div class="era-empty" aria-hidden="true"></div>
+                <div class="era-node">
+                    <div class="era-dot" style="border-color:#4fc3f7;box-shadow:0 0 12px rgba(79,195,247,0.5)"></div>
+                    <div class="era-year">1215 AD</div>
+                </div>
+                <div class="era-content">
+                    <span class="era-icon" aria-hidden="true">📜</span>
+                    <div class="era-title">Magna Carta</div>
+                    <p class="era-desc">King John of England signs the "Great Charter" — the foundational document of constitutional law and protection against arbitrary royal power.</p>
+                </div>
+            </article>
+
+            <article class="timeline-era" role="listitem" aria-label="Common Law">
+                <div class="era-content">
+                    <span class="era-icon" aria-hidden="true">🏛️</span>
+                    <div class="era-title">Common Law</div>
+                    <p class="era-desc">The English doctrine of stare decisis (1600s) — binding precedent transforms courtroom decisions into living legal architecture.</p>
+                </div>
+                <div class="era-node">
+                    <div class="era-dot" style="border-color:#9b59b6;box-shadow:0 0 12px rgba(155,89,182,0.5)"></div>
+                    <div class="era-year">1600s</div>
+                </div>
+                <div class="era-empty" aria-hidden="true"></div>
+            </article>
+
+            <article class="timeline-era" role="listitem" aria-label="Digital Constitution">
+                <div class="era-empty" aria-hidden="true"></div>
+                <div class="era-node">
+                    <div class="era-dot" style="border-color:#00e5ff;box-shadow:0 0 12px rgba(0,229,255,0.5)"></div>
+                    <div class="era-year">2026</div>
+                </div>
+                <div class="era-content">
+                    <span class="era-icon" aria-hidden="true">🤖</span>
+                    <div class="era-title">Digital Constitution</div>
+                    <p class="era-desc">AI-augmented jurisprudence — intelligent systems trained on global legal corpora, bringing equitable access to legal knowledge for all.</p>
+                </div>
+            </article>
+
+        </div>
+    </section>
+
+    <!-- ── SECTION 4: CTA ────────────────────────────────── -->
+    <section class="landing-section landing-cta" aria-label="Enter the application">
+
+        <!-- Large decorative scales -->
+        <svg viewBox="0 0 200 80" width="120" height="48" aria-hidden="true" style="opacity:0.2;margin-bottom:8px;">
+            <line x1="20" y1="40" x2="180" y2="40" stroke="#c9a84c" stroke-width="2"/>
+            <line x1="100" y1="15" x2="100" y2="40" stroke="#c9a84c" stroke-width="2"/>
+            <circle cx="40" cy="40" r="3" fill="#c9a84c"/>
+            <line x1="40" y1="43" x2="40" y2="60" stroke="#c9a84c" stroke-width="1.5"/>
+            <ellipse cx="40" cy="63" rx="16" ry="5" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+            <circle cx="160" cy="40" r="3" fill="#4fc3f7"/>
+            <line x1="160" y1="43" x2="160" y2="55" stroke="#4fc3f7" stroke-width="1.5"/>
+            <ellipse cx="160" cy="58" rx="16" ry="5" fill="none" stroke="#4fc3f7" stroke-width="1.5"/>
+        </svg>
+
+        <h2 class="cta-title">Join the Judicial Cosmos</h2>
+        <p class="cta-sub">Your AI legal guide awaits — powered by advanced language intelligence and centuries of jurisprudence.</p>
+
+        <button id="btnEnterCosmos" type="button" aria-label="Enter the Legal AI application">
+            <span class="btn-cosmos-text">Enter the Cosmos</span>
+        </button>
+
+        <p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(107,118,148,0.6);letter-spacing:0.2em;margin-top:16px;text-transform:uppercase;">
+            For informational purposes only · Not legal advice
+        </p>
+
+    </section>
+
+</div><!-- /#landingOverlay -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     EXISTING APP UI (unchanged from v2, hidden behind landing)
+════════════════════════════════════════════════════════ -->
+
+<!-- Custom Cursor (Desktop) -->
+<div class="cursor-outer" id="cursorOuter" aria-hidden="true"></div>
+<div class="cursor-inner" id="cursorInner" aria-hidden="true"></div>
+
+<!-- Cinematic Intro Overlay -->
+<div class="intro-overlay" id="introOverlay" aria-hidden="true">
+    <div class="intro-content">
+        <svg class="intro-scales" viewBox="0 0 200 200" width="120" height="120" aria-hidden="true">
+            <defs>
+                <linearGradient id="scalesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#c9a84c;stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:#4fc3f7;stop-opacity:1"/>
+                </linearGradient>
+            </defs>
+            <line x1="40" y1="100" x2="160" y2="100" stroke="url(#scalesGradient)" stroke-width="3"/>
+            <line x1="100" y1="60" x2="100" y2="100" stroke="url(#scalesGradient)" stroke-width="3"/>
+            <circle cx="60" cy="100" r="3" fill="#c9a84c"/>
+            <line x1="60" y1="100" x2="60" y2="120" stroke="#c9a84c" stroke-width="2"/>
+            <rect x="45" y="120" width="30" height="15" fill="none" stroke="#c9a84c" stroke-width="2" rx="2"/>
+            <circle cx="140" cy="100" r="3" fill="#4fc3f7"/>
+            <line x1="140" y1="100" x2="140" y2="120" stroke="#4fc3f7" stroke-width="2"/>
+            <rect x="125" y="120" width="30" height="15" fill="none" stroke="#4fc3f7" stroke-width="2" rx="2"/>
+            <circle cx="100" cy="60" r="4" fill="url(#scalesGradient)"/>
+        </svg>
+    </div>
+</div>
+
+<!-- Cosmic Background Atmosphere -->
+<div class="cosmic-background" aria-hidden="true">
+    <div class="nebula-orb nebula-orb-1"></div>
+    <div class="nebula-orb nebula-orb-2"></div>
+    <div class="nebula-orb nebula-orb-3"></div>
+    <div class="star-field" id="starField"></div>
+    <div class="scan-lines"></div>
+    <svg class="corner-decoration corner-tl" viewBox="0 0 100 100" width="100" height="100" aria-hidden="true">
+        <path d="M0,0 L0,40 Q0,0 40,0 L0,0 M10,0 L10,30 Q10,10 30,10 L10,0"
+              fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="0.5"/>
+    </svg>
+    <svg class="corner-decoration corner-tr" viewBox="0 0 100 100" width="100" height="100" aria-hidden="true">
+        <path d="M100,0 L100,40 Q100,0 60,0 L100,0 M90,0 L90,30 Q90,10 70,10 L90,0"
+              fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="0.5"/>
+    </svg>
+    <svg class="corner-decoration corner-bl" viewBox="0 0 100 100" width="100" height="100" aria-hidden="true">
+        <path d="M0,100 L0,60 Q0,100 40,100 L0,100 M10,100 L10,70 Q10,90 30,90 L10,100"
+              fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="0.5"/>
+    </svg>
+    <svg class="corner-decoration corner-br" viewBox="0 0 100 100" width="100" height="100" aria-hidden="true">
+        <path d="M100,100 L100,60 Q100,100 60,100 L100,100 M90,100 L90,70 Q90,90 70,90 L90,100"
+              fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="0.5"/>
+    </svg>
+</div>
+
+<!-- Constellation idle label -->
+<div class="constellation-label" id="constellLabel" aria-hidden="true">Lex Cosmica</div>
+
+<!-- App Container -->
+<div class="app-container" id="appContainer">
+
+    <!-- ══════════════════ HEADER ══════════════════ -->
+    <header class="cosmic-header" role="banner">
+        <div class="header-left">
+            <svg class="scales-icon" id="scalesIcon" viewBox="0 0 200 200" width="40" height="40" aria-hidden="true">
+                <defs>
+                    <linearGradient id="headerScalesGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#c9a84c;stop-opacity:1"/>
+                        <stop offset="100%" style="stop-color:#4fc3f7;stop-opacity:1"/>
+                    </linearGradient>
+                </defs>
+                <g class="scales-pendulum">
+                    <line x1="40" y1="100" x2="160" y2="100" stroke="url(#headerScalesGrad)" stroke-width="4"/>
+                    <line x1="100" y1="60" x2="100" y2="100" stroke="url(#headerScalesGrad)" stroke-width="4"/>
+                    <circle cx="60" cy="100" r="4" fill="#c9a84c"/>
+                    <line x1="60" y1="100" x2="60" y2="125" stroke="#c9a84c" stroke-width="3"/>
+                    <rect x="42" y="125" width="36" height="20" fill="none" stroke="#c9a84c" stroke-width="3" rx="3"/>
+                    <circle cx="140" cy="100" r="4" fill="#4fc3f7"/>
+                    <line x1="140" y1="100" x2="140" y2="125" stroke="#4fc3f7" stroke-width="3"/>
+                    <rect x="122" y="125" width="36" height="20" fill="none" stroke="#4fc3f7" stroke-width="3" rx="3"/>
+                    <circle cx="100" cy="60" r="5" fill="url(#headerScalesGrad)"/>
+                </g>
+            </svg>
+        </div>
+
+        <h1 class="cosmic-title">LEGAL AI</h1>
+
+        <div class="header-right">
+            <button class="btn-new-consultation" id="btnNewConsultation" type="button">
+                <i class="fas fa-plus" aria-hidden="true"></i>
+                <span>New Consultation</span>
+            </button>
+        </div>
+
+        <div class="header-border" aria-hidden="true"></div>
+    </header>
+
+    <!-- ══════════════════ SIDEBAR ══════════════════ -->
+    <aside class="cosmic-sidebar" id="cosmicSidebar" aria-label="Consultation history">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">CONSULTATIONS</h2>
+            <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close sidebar">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-sessions" id="sidebarSessions" role="list" aria-label="Past consultations">
+            <!-- Sessions inserted dynamically -->
+        </div>
+    </aside>
+
+    <!-- Mobile hamburger menu -->
+    <button class="hamburger-menu" id="hamburgerMenu" type="button" aria-label="Toggle sidebar" aria-expanded="false">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+    </button>
+
+    <!-- ══════════════════ MAIN CHAT AREA ══════════════════ -->
+    <main class="cosmic-main" id="cosmicMain" role="main" aria-live="polite" aria-label="Chat messages">
+        <div class="chat-container" id="chatContainer">
+
+            <!-- Empty / onboarding state -->
+            <div class="empty-state" id="emptyState" role="region" aria-label="Welcome screen">
+                <svg class="empty-scales" viewBox="0 0 200 200" width="140" height="140" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="emptyScalesGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#c9a84c;stop-opacity:0.6"/>
+                            <stop offset="100%" style="stop-color:#4fc3f7;stop-opacity:0.6"/>
+                        </linearGradient>
+                    </defs>
+                    <line x1="40" y1="100" x2="160" y2="100" stroke="url(#emptyScalesGrad)" stroke-width="3"/>
+                    <line x1="100" y1="60" x2="100" y2="100" stroke="url(#emptyScalesGrad)" stroke-width="3"/>
+                    <circle cx="60" cy="100" r="3" fill="#c9a84c" opacity="0.6"/>
+                    <line x1="60" y1="100" x2="60" y2="120" stroke="#c9a84c" stroke-width="2" opacity="0.6"/>
+                    <rect x="45" y="120" width="30" height="15" fill="none" stroke="#c9a84c" stroke-width="2" rx="2" opacity="0.6"/>
+                    <circle cx="140" cy="100" r="3" fill="#4fc3f7" opacity="0.6"/>
+                    <line x1="140" y1="100" x2="140" y2="120" stroke="#4fc3f7" stroke-width="2" opacity="0.6"/>
+                    <rect x="125" y="120" width="30" height="15" fill="none" stroke="#4fc3f7" stroke-width="2" rx="2" opacity="0.6"/>
+                    <circle cx="100" cy="60" r="4" fill="url(#emptyScalesGrad)"/>
+                </svg>
+
+                <h2 class="empty-title">Welcome to Legal AI</h2>
+                <p class="empty-subtitle">Your professional legal assistant powered by advanced AI</p>
+
+                <div class="prompt-chips" role="list" aria-label="Example questions">
+                    <div class="prompt-chip" role="listitem" tabindex="0">Constitutional Law Queries</div>
+                    <div class="prompt-chip" role="listitem" tabindex="0">Contract Analysis</div>
+                    <div class="prompt-chip" role="listitem" tabindex="0">Case Law Research</div>
+                    <div class="prompt-chip" role="listitem" tabindex="0">Legal Procedures</div>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="messages-area" id="messagesArea" role="log" aria-live="polite" aria-label="Conversation messages"></div>
+
+        </div>
+    </main>
+
+    <!-- ══════════════════ CHAT INPUT ══════════════════ -->
+    <div class="cosmic-input-container" role="complementary" aria-label="Message input">
+        <div class="input-wrapper">
+            <button class="btn-voice" type="button" disabled title="Voice input (coming soon)" aria-label="Voice input (coming soon)">
+                <i class="fas fa-microphone" aria-hidden="true"></i>
+            </button>
+
+            <textarea
+                class="cosmic-textarea"
+                id="cosmicTextarea"
+                placeholder="Describe your legal query in detail…"
+                rows="1"
+                maxlength="10000"
+                aria-label="Legal query input"
+                aria-multiline="true"></textarea>
+
+            <button class="btn-send" id="btnSend" type="button" disabled aria-label="Send message">
+                <i class="fas fa-paper-plane" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="char-counter" id="charCounter" style="display:none;" aria-live="polite">
+            <span id="charCount">0</span> / 10000
+        </div>
+    </div>
+
+</div><!-- /.app-container -->
+
+<!-- ══════════════════ DISCLAIMER BANNER ══════════════════ -->
+<div class="disclaimer-banner" id="disclaimerBanner" role="status" aria-live="polite">
+    <i class="fas fa-balance-scale" aria-hidden="true"></i>
+    <span>For informational purposes only — not legal advice</span>
+    <button class="disclaimer-close" id="disclaimerClose" type="button" aria-label="Dismiss disclaimer">
+        <i class="fas fa-times" aria-hidden="true"></i>
+    </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT — order matters
+════════════════════════════════════════════════════════ -->
+<!-- Dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+<!-- Existing app logic (v2, unchanged) -->
+<script src="{{ url_for('static', filename='legal_app_v2.js') }}"></script>
+
+<!-- 2026 Animation Layer -->
+<script src="{{ url_for('static', filename='js/legal_animations.js') }}"></script>
+
+</body>
+</html>

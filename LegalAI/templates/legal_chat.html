@@ -1,167 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LegalAI – Professional Legal Assistant</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oryzed — Intelligent Legal Assistant</title>
+    <meta name="description"
+        content="Oryzed: AI-powered legal intelligence for Indian law. Structured, expert-level analysis." />
 
-    <!-- MAIN STYLES -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_final.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
 
-    <!-- LIBRARIES -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossorigin="anonymous" />
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="/static/legal_style_final.css" />
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" defer></script>
+
+    <!-- Markdown Renderer + DOMPurify -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
 </head>
 
-<body class="loading">
+<body>
 
-<!-- =====================================================
-     PRELOADER – GAVEL ANIMATION (MUST BE FIRST IN BODY)
-===================================================== -->
-<div id="preloader">
-  <svg id="gavel-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
+    <!-- ═══ LIVE WALLPAPER CANVAS ═══ -->
+    <canvas id="bgCanvas" aria-hidden="true"></canvas>
 
-    <defs>
-      <linearGradient id="handleGrad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#4c1d95"/>
-        <stop offset="50%" stop-color="#7c3aed"/>
-        <stop offset="100%" stop-color="#312e81"/>
-      </linearGradient>
+    <!-- ═══ LOADING SCREEN ═══ -->
+    <div id="loadingScreen" role="status" aria-label="Loading Oryzed">
+        <canvas id="ladyJusticeCanvas" aria-hidden="true"></canvas>
+        <div class="loading-text-wrap">
+            <div id="loadingBrand" class="loading-brand" aria-live="polite"></div>
+            <div id="loadingStatus" class="loading-status">Awakening Judicial Intelligence…</div>
+            <div class="loading-bar-wrap">
+                <div id="loadingBar" class="loading-bar"></div>
+            </div>
+        </div>
+    </div>
 
-      <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#60a5fa"/>
-        <stop offset="100%" stop-color="#1e3a8a"/>
-      </linearGradient>
+    <!-- ═══ HAMBURGER (always fixed, always visible) ═══ -->
+    <button id="hamburgerBtn" class="hamburger-btn" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="hb-line hb-top"></span>
+        <span class="hb-line hb-mid"></span>
+        <span class="hb-line hb-bot"></span>
+    </button>
 
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="6" result="blur"/>
-        <feMerge>
-          <feMergeNode in="blur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    </defs>
+    <!-- ═══ SIDEBAR OVERLAY ═══ -->
+    <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
 
-    <!-- SHADOW -->
-    <ellipse cx="400" cy="480" rx="240" ry="32"
-             fill="rgba(0,0,0,0.55)" />
-
-    <!-- BASE -->
-    <rect x="230" y="430" width="340" height="55" rx="14"
-          fill="#0f172a" stroke="#3b82f6" stroke-width="2"
-          filter="url(#glow)">
-      <animateTransform
-        attributeName="transform"
-        type="scale"
-        values="1 1; 1 0.82; 1 1"
-        keyTimes="0;0.2;1"
-        dur="1.2s"
-        repeatCount="indefinite"/>
-    </rect>
-
-    <!-- GAVEL -->
-    <g id="gavel" filter="url(#glow)" transform-origin="560px 220px">
-
-      <!-- HANDLE -->
-      <rect x="360" y="210" width="360" height="32" rx="14"
-            fill="url(#handleGrad)" />
-
-      <!-- HEAD -->
-      <rect x="300" y="185" width="140" height="80" rx="18"
-            fill="url(#headGrad)" />
-    </g>
-
-    <!-- HIT ANIMATION -->
-    <animateTransform
-      xlink:href="#gavel"
-      attributeName="transform"
-      type="rotate"
-      values="-42 560 220; 0 560 350; -10 560 300; 0 560 300"
-      keyTimes="0;0.42;0.65;1"
-      dur="1.2s"
-      repeatCount="indefinite"/>
-  </svg>
-
-  <!-- SOUND -->
-  <audio id="gavelSound" src="/static/gavel-hit.mp3" preload="auto"></audio>
-</div>
-
-<!-- =====================================================
-     APP CONTAINER
-===================================================== -->
-<div class="app-container">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="brand">
-                <div class="brand-icon"><i class="fas fa-gavel"></i></div>
-                <span class="brand-name">LegalAI</span>
+    <!-- ═══ CHAT HISTORY SIDEBAR (overlay drawer) ═══ -->
+    <aside id="chatSidebar" class="chat-sidebar" aria-label="Consultation history" hidden>
+        <div class="sidebar-inner">
+            <div class="sidebar-header">
+                <div class="sidebar-logo-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <polygon points="14,3 25,23 3,23" stroke="#4fc3f7" stroke-width="1.4"
+                            fill="rgba(26,110,181,0.18)" />
+                        <circle cx="14" cy="3" r="2.2" fill="#a8e6ff" />
+                        <circle cx="25" cy="23" r="2.2" fill="#4fc3f7" />
+                        <circle cx="3" cy="23" r="2.2" fill="#4fc3f7" />
+                    </svg>
+                </div>
+                <span class="sidebar-brand">Oryzed</span>
             </div>
 
-            <button class="new-chat-btn" id="newChatBtn">
-                <i class="fas fa-plus"></i> New Consultation
+            <button id="btnNewConsultation" class="btn-new-chat">
+                <i class="fas fa-plus" id="newChatPlus"></i>
+                <span>New Consultation</span>
             </button>
-        </div>
 
-        <div class="sidebar-section">
-            <div class="section-label">Consultations</div>
-            <div class="chat-history" id="chatHistory">
-                <div class="loading">Loading consultations…</div>
-            </div>
-        </div>
-
-        <div class="sidebar-footer">
-            <small>
-                <i class="fas fa-info-circle"></i>
-                For informational purposes only. Not legal advice.
-            </small>
+            <div class="session-list-label">Recent Consultations</div>
+            <div id="sidebarSessions" class="session-list" role="list"></div>
         </div>
     </aside>
 
-    <!-- MAIN -->
-    <main class="main-content">
-        <header class="chat-header">
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
+    <!-- ═══════════════════════════════════════════════════════════
+     SCROLLYTELLING LANDING PAGE
+     ═══════════════════════════════════════════════════════════ -->
+    <div id="landingPage" class="landing-page" aria-hidden="true">
 
-            <div class="model-selector">
-                LegalAI v4.0
+        <!-- Landing nav -->
+        <nav class="land-nav" aria-label="Main navigation">
+            <div class="nav-brand">
+                <span class="nav-scale" aria-hidden="true">⚖</span>
+                <span class="nav-name">Oryzed</span>
             </div>
-        </header>
+            <button id="btnNavEnterChat" class="btn-nav-cta" aria-label="Start consultation">
+                Start Consultation
+            </button>
+        </nav>
 
-        <!-- CHAT -->
-        <section class="chat-messages" id="chatMessages">
-            <div class="welcome-message">
-                <div class="orb">
-                    <div class="orb-inner"></div>
+        <!-- ── SECTION 1: HERO ── -->
+        <section id="heroSection" class="land-section hero-section" aria-labelledby="heroHeadline">
+            <div class="hero-split">
+                <!-- Text side -->
+                <div class="hero-text">
+                    <div class="hero-badge reveal-item">Legal AI Platform · 2026</div>
+                    <h1 id="heroHeadline" class="hero-headline reveal-item">
+                        Justice,<br><span class="hero-accent">Reimagined</span>
+                    </h1>
+                    <p class="hero-sub reveal-item">
+                        Designed to empower your expertise,<br>not diminish it.
+                    </p>
+                    <div class="hero-stats reveal-item">
+                        <div class="stat-item">
+                            <span class="stat-num">10K+</span>
+                            <span class="stat-label">Case Laws</span>
+                        </div>
+                        <div class="stat-divider" aria-hidden="true"></div>
+                        <div class="stat-item">
+                            <span class="stat-num">6</span>
+                            <span class="stat-label">Analysis Layers</span>
+                        </div>
+                        <div class="stat-divider" aria-hidden="true"></div>
+                        <div class="stat-item">
+                            <span class="stat-num">∞</span>
+                            <span class="stat-label">Consultations</span>
+                        </div>
+                    </div>
+                    <button id="btnHeroEnterChat" class="btn-hero-cta reveal-item" aria-label="Begin consultation">
+                        Begin Consultation <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </button>
                 </div>
-                <h2>What legal issue can I help you with today?</h2>
+
+                <!-- Lady Justice canvas -->
+                <div class="hero-canvas-wrap" aria-hidden="true">
+                    <canvas id="heroLJCanvas"></canvas>
+                    <div class="hero-canvas-glow"></div>
+                </div>
+            </div>
+
+            <div class="scroll-cue" aria-hidden="true">
+                <div class="scroll-cue-dot"></div>
+                <span>Scroll to explore</span>
             </div>
         </section>
 
-        <!-- INPUT -->
-        <footer class="input-container">
-            <div class="input-wrapper">
-                <textarea id="messageInput"
-                          placeholder="Describe your legal issue…"
-                          rows="1"></textarea>
-                <button id="sendButton" disabled>
-                    <i class="fas fa-paper-plane"></i>
+        <!-- ── SECTION 2: FEATURES ── -->
+        <section id="featuresSection" class="land-section features-section" aria-labelledby="featTitle">
+            <div class="section-eyebrow reveal-item">CAPABILITIES</div>
+            <h2 id="featTitle" class="section-title reveal-item">Built for Legal Excellence</h2>
+            <p class="section-sub reveal-item">Expert-grade analysis grounded in Indian jurisprudence.</p>
+            <div class="features-grid">
+                <div class="feature-card reveal-item" data-delay="0">
+                    <div class="feat-icon-wrap" aria-hidden="true">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Legal Research</h3>
+                    <p>Instant synthesis of case law, statutes, and precedents from Indian Kanoon, SCC Online, and
+                        authoritative legal sources.</p>
+                    <div class="feat-tag">DuckDuckGo · LawBhoomi</div>
+                </div>
+                <div class="feature-card reveal-item feat-highlight" data-delay="1">
+                    <div class="feat-icon-wrap" aria-hidden="true">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h3>Case Analysis</h3>
+                    <p>Structured 6-section format: Facts → Legal Issues → Analysis → Applicable Laws → Case Law →
+                        Conclusion.</p>
+                    <div class="feat-tag">IPC · CrPC · Constitution</div>
+                </div>
+                <div class="feature-card reveal-item" data-delay="2">
+                    <div class="feat-icon-wrap" aria-hidden="true">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h3>Legal Consultation</h3>
+                    <p>Expert guidance on civil, criminal, corporate, and constitutional matters with cited Supreme
+                        Court judgments.</p>
+                    <div class="feat-tag">llama-3.3-70b-versatile</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SECTION 3: CTA ── -->
+        <section id="ctaSection" class="land-section cta-section" aria-labelledby="ctaTitle">
+            <div class="cta-inner">
+                <div class="cta-emblem reveal-item" aria-hidden="true">
+                    <canvas id="ctaLJMini" width="180" height="180"></canvas>
+                </div>
+                <div class="cta-text">
+                    <h2 id="ctaTitle" class="cta-headline reveal-item">Ready to Begin?</h2>
+                    <p class="cta-sub reveal-item">Experience AI-powered legal intelligence engineered for the modern
+                        legal professional.</p>
+                    <button id="btnCtaEnterChat" class="btn-cta-main reveal-item" aria-label="Start consultation">
+                        <i class="fas fa-balance-scale" aria-hidden="true"></i>
+                        Start Your Consultation
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- /#landingPage -->
+
+    <!-- ═══════════════════════════════════════════════════════════
+     CHAT SPA
+     ═══════════════════════════════════════════════════════════ -->
+    <div id="chatApp" class="chat-app" aria-hidden="true">
+
+        <!-- Ghost Lady Justice background -->
+        <canvas id="chatLJCanvas" class="chat-lj-canvas" aria-hidden="true"></canvas>
+
+        <!-- Chat topbar -->
+        <header class="chat-topbar" role="banner">
+            <div class="topbar-brand">
+                <span class="topbar-scale" aria-hidden="true">⚖</span>
+                <span class="topbar-name">Oryzed</span>
+            </div>
+            <div class="topbar-right">
+                <button id="btnNewConsultationTop" class="btn-top-new" aria-label="New consultation">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="input-footer">
-                <span id="charCount">0/2000</span>
+        </header>
+
+        <!-- Chat body -->
+        <div class="chat-body">
+            <div id="chatWrapper" class="chat-wrapper">
+
+                <!-- Empty state -->
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon-wrap" aria-hidden="true">
+                        <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+                            <polygon points="36,6 64,60 8,60" stroke="#4fc3f7" stroke-width="1.4"
+                                fill="rgba(26,110,181,0.1)" class="empty-poly" />
+                            <circle cx="36" cy="6" r="3.5" fill="#a8e6ff" />
+                            <circle cx="64" cy="60" r="3.5" fill="#4fc3f7" />
+                            <circle cx="8" cy="60" r="3.5" fill="#4fc3f7" />
+                        </svg>
+                    </div>
+                    <h2 class="empty-title">Designed to empower your expertise, not diminish it</h2>
+                    <p class="empty-sub">Ask about Indian law, case analysis, legal procedures, rights, or any legal
+                        matter.</p>
+                    <div class="prompt-chips" role="group" aria-label="Quick prompts">
+                        <button class="prompt-chip" data-prompt="What are my rights if I am arrested in India?">Rights
+                            on arrest</button>
+                        <button class="prompt-chip"
+                            data-prompt="Explain Section 498A IPC in detail with case law.">Section 498A IPC</button>
+                        <button class="prompt-chip" data-prompt="What is the process for filing an FIR in India?">How to
+                            file an FIR</button>
+                        <button class="prompt-chip" data-prompt="What is habeas corpus and when can it be used?">Habeas
+                            Corpus</button>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div id="messagesArea" class="messages-area" role="log" aria-live="polite" aria-label="Conversation">
+                </div>
             </div>
-        </footer>
-    </main>
-</div>
 
-<!-- MAIN SCRIPT -->
-<script src="{{ url_for('static', filename='legal_app.js') }}"></script>
+            <!-- Input section -->
+            <div class="input-section">
+                <div id="newMsgPill" class="new-msg-pill" role="status" hidden>
+                    <i class="fas fa-chevron-down" aria-hidden="true"></i> New message
+                </div>
+                <div class="input-bar" id="inputBar">
+                    <textarea id="cosmicTextarea" class="chat-input" placeholder="Ask your legal question…" rows="1"
+                        maxlength="4000" aria-label="Legal question input" aria-multiline="true"></textarea>
+                    <div class="input-actions">
+                        <span class="char-counter" aria-live="polite">
+                            <span id="charCount">0</span>/4000
+                        </span>
+                        <button id="btnSend" class="btn-send" aria-label="Send message" disabled>
+                            <i class="fas fa-paper-plane" id="sendIcon" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="input-disclaimer">Oryzed provides legal information only — not a substitute for qualified
+                    legal advice.</p>
+            </div>
+        </div><!-- /.chat-body -->
 
+    </div><!-- /#chatApp -->
+
+    <!-- App JS -->
+    <script src="/static/legal_app.js" defer></script>
 </body>
+
 </html>

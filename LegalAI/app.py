@@ -196,61 +196,72 @@ class LawbhoomiScraperTool:
             return f"Error: Failed to process content from URL {url}. Details: {e}"
 
 # ------------------------------------------------------
-#              LEGAL AI AGENT
+#              LEGAL AI AGENT  (FIX 1-3)
 # ------------------------------------------------------
 
-def create_legal_agent(chat_history=None):
-    context_prompt = ""
-    if chat_history:
-        context_prompt = "\n\nPrevious conversation context:\n"
-        for msg in chat_history[-5:]:
-            context_prompt += f"{msg['role'].title()}: {msg['content'][:200]}...\n"
+# Fix 1 — Structured system prompt with Indian law focus
+LEGAL_SYSTEM_PROMPT = """You are LegalAI, an expert legal assistant with deep knowledge of Indian law,
+constitutional law, criminal law, civil law, corporate law, and international law.
 
-    instructions = [
-        "🚨 CRITICAL: You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters.",
-        "❌ STRICTLY REFUSE: If asked about anything non-legal, respond: 'I apologize, but I am a specialized Legal AI Assistant. I can only provide assistance with legal matters, legal research, case analysis, statutory interpretation, and legal consultation. Please ask me a legal question.'",
-        "🔍 RESEARCH: Use the **DuckDuckGoTools** for general web search, and specifically use the **LawbhoomiScraperTool** when the user asks for legal concepts, detailed notes, or statutory overviews, as this tool provides pre-indexed legal notes.", # UPDATED INSTRUCTION
-        "📋 REQUIRED FORMAT: For all legal responses, always provide: A summary of the facts of the case, Identification of legal issues, Step-by-step legal analysis, Reference to relevant laws (Acts, Sections, Articles), Mention of landmark cases and their citations, A well-structured judgment/conclusion.",
-        "💼 PROFESSIONAL: Use clear, professional legal language, while ensuring simplicity and accessibility for users.",
-        "⚖️ ACCURACY: Provide comprehensive yet concise explanations, ensuring every answer is backed by relevant authority and interpretation.",
-        "🧠 MEMORY: You are an intelligent AI assistant that remembers the ongoing chat context and refers to it when responding.",
-        "🚨 CRITICAL: You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters.",
-        "❌ STRICTLY REFUSE: If asked about anything non-legal (technology, cooking, sports, entertainment, personal advice, general knowledge, math, science, etc.), respond: 'I apologize, but I am a specialized Legal AI Assistant. I can only provide assistance with legal matters, legal research, case analysis, statutory interpretation, and legal consultation. Please ask me a legal question.'",
-        "✅ LEGAL TOPICS ONLY: Constitutional law, civil law, criminal law, corporate law, family law, property law, contract law, tort law, administrative law, labor law, tax law, intellectual property law, international law, legal procedures, case analysis, statutory interpretation, legal research, court procedures, legal documentation, legal precedents, and legal advice.",
-        "📋 REQUIRED FORMAT: For all legal responses, always provide: A summary of the facts of the case, Identification of legal issues, Step-by-step legal analysis, Reference to relevant laws (Acts, Sections, Articles), Mention of landmark cases and their citations, A well-structured judgment/conclusion, Citations of law commission reports, official gazettes, or legal commentaries where appropriate.",
-        "🔍 RESEARCH: Pull factual and statutory data from Google API and authoritative legal websites like Indian Kanoon, SCC Online, Manupatra, Bar & Bench, LiveLaw.",
-        "💼 PROFESSIONAL: Use clear, professional legal language, while ensuring simplicity and accessibility for users.",
-        "⚖️ ACCURACY: Provide comprehensive yet concise explanations, ensuring every answer is backed by relevant authority and interpretation.",
-        "🔒 ETHICS: Always ensure the output maintains legal accuracy, neutrality, and ethical standards.",
-        "🧠 MEMORY: You are an intelligent AI assistant that remembers the ongoing chat context and refers to it when responding.",
-        "🔄 CONTINUITY: Maintain continuity and coherence within the same chat session.",
-        "❓ FOLLOW-UP: Understand follow-up questions based on earlier user inputs and your responses.",
-        "🚫 NO REPEAT: Avoid repeating the same content unless requested.",
-        "📋 REQUIRED FORMAT: For all legal responses, always provide: A introduction of the topic, Identification of legal issues, Analysis, Reference to relevant laws (Acts, Sections, Articles), Mention of landmark cases and their citations, A well-structured conclusion, Citations of law commission reports, official gazettes, or legal commentaries where appropriate.",
-        "REQUIRED FORMAT OF CASE LAWS : A summary of facts of the case, Identification of Legal issues involved, Identification of law applicable, mention the section, article with he act, Judgment of case and conclusion " ,            
-        "🔍 RESEARCH: Pull factual and statutory data from Google and authoritative legal websites like Indian Kanoon, SCC Online, Manupatra, Bar & Bench, LiveLaw, Law Bhoomi, Case Mine, Drishti Judiciary, Law Jurist.",
-        "⚖️ LEGAL CONSULTATION: Provide detailed legal consultation, including potential outcomes, risks, and benefits of different legal strategies.",
-        "⚖️ LEGAL ONLY: Stay strictly within the context of legal consultation only - no exceptions.",
-        f"Context from previous conversation: {context_prompt}" if context_prompt else ""
-    ]
+STRICT RULES:
+1. ONLY answer legal questions. If asked anything non-legal, respond:
+   "I'm specialized in legal matters only. Please ask a legal question."
+2. ALWAYS structure responses in this EXACT format:
+   ## 📋 Facts & Context
+   ## ⚖️ Legal Issues Identified
+   ## 🔍 Legal Analysis
+   ## 📜 Applicable Laws & Sections
+   ## 🏛️ Relevant Case Law
+   ## ✅ Conclusion
+3. Always cite specific sections (e.g., "Section 302 IPC"), article numbers,
+   and case names with years.
+4. If using web search results, synthesize them — do not paste them verbatim.
+5. Be precise, professional, and cite authoritative sources.
+6. For Indian law queries, prioritize IPC, CrPC, CPC, Constitution of India,
+   and Supreme Court judgments.
+7. Use the LawbhoomiScraperTool for detailed legal concept notes.
+8. Use DuckDuckGoTools for current case law and recent judgments."""
 
-    agent = Agent(
-        model=Groq(id="llama-3.3-70b-versatile", temperature=0.1),
-        description="You are a highly qualified legal advisor.",
-        instructions=instructions,
-        tools=[DuckDuckGoTools(), LawbhoomiScraperTool()], # --- ADDED CUSTOM LAW BHOOMI TOOL HERE ---
-        markdown=True
-    )
+# Fix 3 — Initialize agent ONCE at startup, not per request
+legal_agent = Agent(
+    model=Groq(id="llama-3.3-70b-versatile", temperature=0.1),
+    description=LEGAL_SYSTEM_PROMPT,
+    instructions=[
+        "Always follow the 6-section structured format.",
+        "Only answer legal questions — refuse all non-legal queries.",
+        "Cite specific Acts, Sections, and case law with years.",
+        "Use LawbhoomiScraperTool for detailed legal notes.",
+        "Use DuckDuckGoTools for current judgments and recent precedents.",
+    ],
+    tools=[DuckDuckGoTools(), LawbhoomiScraperTool()],
+    markdown=True,
+)
 
-    return agent
+# Fix 2 — context window increased to 10 messages, proper format
+def get_chat_context(session_id, limit=10):
+    """Return last `limit` messages as a formatted string for injection into the prompt."""
+    messages = get_chat_history(session_id)
+    history  = messages[-limit:]
+    if not history:
+        return ""
+    lines = []
+    for m in history[:-1]:   # Exclude the message currently being processed
+        role = "User" if m["role"] == "user" else "Assistant"
+        lines.append(f"{role}: {m['content']}")
+    return "\n".join(lines)
 
 # ------------------------------------------------------
-#                  ROUTES (No Changes Below)
+#                  ROUTES
 # ------------------------------------------------------
 
 @app.route("/")
 def index():
     return render_template('legal_chat.html')
+
+# Fix 5 — Health endpoint (needed by loading screen)
+@app.route("/api/health")
+def health():
+    return jsonify({"status": "ok", "model": "llama-3.3-70b-versatile"})
 
 @app.route("/api/new_session", methods=["POST"])
 def new_session():
@@ -281,16 +292,28 @@ def send_message(session_id):
 
         save_message(session_id, "user", user_message)
 
-        agent = create_legal_agent(chat_history)
-        response = agent.run(user_message)
-        ai_response = str(response.content)
+        # Fix 2 — inject formatted conversation context (last 10 msgs)
+        history_text = get_chat_context(session_id)
+        if history_text:
+            full_prompt = f"""Previous conversation:\n{history_text}\n\nCurrent question: {user_message}\n\nProvide a complete legal analysis following the structured 6-section format."""
+        else:
+            full_prompt = f"{user_message}\n\nProvide a complete legal analysis following the structured 6-section format."
+
+        # Fix 3 — use the singleton agent
+        # Fix 4 — proper error handling
+        try:
+            response = legal_agent.run(full_prompt)
+            ai_response = response.content if hasattr(response, 'content') else str(response)
+        except Exception as agent_err:
+            app.logger.error(f"Agent error in send_message: {agent_err}")
+            ai_response = "I encountered an error processing your legal query. Please rephrase and try again."
 
         save_message(session_id, "assistant", ai_response)
 
         return jsonify({"response": ai_response, "status": "success"})
 
     except Exception as e:
-        print("Error in send_message:", e)
+        app.logger.error(f"Error in send_message: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 @app.route("/api/delete_session/<session_id>", methods=["DELETE"])
@@ -351,18 +374,26 @@ def edit_message(session_id, message_id):
         conn.commit()
         conn.close()
 
-        chat_history = get_chat_history(session_id)
-        agent = create_legal_agent(chat_history)
+        # Fix 2 + 3 + 4 in edit_message route as well
+        history_text = get_chat_context(session_id)
+        if history_text:
+            full_prompt = f"""Previous conversation:\n{history_text}\n\nCurrent question: {new_message}\n\nProvide a complete legal analysis following the structured 6-section format."""
+        else:
+            full_prompt = f"{new_message}\n\nProvide a complete legal analysis following the structured 6-section format."
 
-        response = agent.run(new_message)
-        ai_response = str(response.content)
+        try:
+            response = legal_agent.run(full_prompt)
+            ai_response = response.content if hasattr(response, 'content') else str(response)
+        except Exception as agent_err:
+            app.logger.error(f"Agent error in edit_message: {agent_err}")
+            ai_response = "I encountered an error processing your legal query. Please rephrase and try again."
 
         save_message(session_id, "assistant", ai_response)
 
         return jsonify({"response": ai_response, "status": "success"})
 
     except Exception as e:
-        print("Error in edit_message:", e)
+        app.logger.error(f"Error in edit_message: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 # ------------------------------------------------------

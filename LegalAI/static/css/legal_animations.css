@@ -1,0 +1,1045 @@
+/* ═══════════════════════════════════════════════════════════
+   LEGAL AI – 2026 ANTIGRAVITY ANIMATION SYSTEM
+   legal_animations.css — Additive layer on top of v2 CSS
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── CONSTELLATION CANVAS ──────────────────────────────── */
+#constellationCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    pointer-events: none;
+    will-change: transform;
+}
+
+/* ── SCROLLYTELLING LANDING OVERLAY ────────────────────── */
+#landingOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 8000;
+    background: #04060f;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.6s ease-out;
+    will-change: opacity;
+}
+
+#landingOverlay.exiting {
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* Progress bar */
+.landing-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 0%;
+    background: linear-gradient(180deg, #c9a84c, #4fc3f7, #9b59b6);
+    z-index: 8010;
+    pointer-events: none;
+    border-radius: 0 3px 3px 0;
+    transition: height 0.1s linear;
+    will-change: height;
+    box-shadow: 0 0 8px rgba(201, 168, 76, 0.6);
+}
+
+/* ── LANDING SECTIONS ──────────────────────────────────── */
+.landing-section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 80px 40px;
+}
+
+/* Hero section */
+.landing-hero {
+    text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 50%,
+            rgba(201, 168, 76, 0.06) 0%, transparent 70%);
+}
+
+.hero-scales-wrap {
+    position: relative;
+    display: inline-block;
+    will-change: transform;
+}
+
+.hero-scales-svg {
+    filter: drop-shadow(0 0 40px rgba(201, 168, 76, 0.5)) drop-shadow(0 0 80px rgba(79, 195, 247, 0.2));
+    will-change: transform;
+}
+
+.hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: #4fc3f7;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: opacity, transform;
+}
+
+.hero-headline {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #c9a84c 0%, #e8eaf0 40%, #4fc3f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+    opacity: 0;
+    transform: translateY(30px);
+    will-change: opacity, transform;
+}
+
+.hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: rgba(232, 234, 240, 0.7);
+    font-style: italic;
+    max-width: 600px;
+    line-height: 1.7;
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: opacity, transform;
+}
+
+/* Scroll hint */
+.scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.5;
+    animation: scrollHintBounce 2s ease-in-out infinite;
+}
+
+.scroll-hint span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: #c9a84c;
+    text-transform: uppercase;
+}
+
+.scroll-hint-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(180deg, #c9a84c, transparent);
+    animation: scrollLineDrop 2s ease-in-out infinite;
+}
+
+@keyframes scrollHintBounce {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(8px);
+    }
+}
+
+@keyframes scrollLineDrop {
+    0% {
+        transform: scaleY(0);
+        transform-origin: top;
+    }
+
+    50% {
+        transform: scaleY(1);
+        transform-origin: top;
+    }
+
+    51% {
+        transform: scaleY(1);
+        transform-origin: bottom;
+    }
+
+    100% {
+        transform: scaleY(0);
+        transform-origin: bottom;
+    }
+}
+
+/* ── DEBRIS FIELD ──────────────────────────────────────── */
+.landing-debris {
+    min-height: 150vh;
+    background: radial-gradient(ellipse 100% 80% at 50% 50%,
+            rgba(155, 89, 182, 0.04) 0%, transparent 70%);
+}
+
+.debris-field {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 150vh;
+}
+
+.debris-term {
+    position: absolute;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px 16px;
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    border-radius: 20px;
+    background: rgba(201, 168, 76, 0.03);
+    backdrop-filter: blur(8px);
+    color: rgba(201, 168, 76, 0.8);
+    transition:
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        color 0.3s ease,
+        background 0.3s ease;
+    will-change: transform;
+    white-space: nowrap;
+}
+
+.debris-term:hover {
+    border-color: rgba(201, 168, 76, 0.7);
+    box-shadow: 0 0 20px rgba(201, 168, 76, 0.3);
+    color: #c9a84c;
+    background: rgba(201, 168, 76, 0.08);
+}
+
+.debris-term.gravity-active {
+    border-color: #c9a84c;
+    box-shadow:
+        0 0 20px rgba(201, 168, 76, 0.5),
+        0 0 40px rgba(201, 168, 76, 0.2);
+    color: #c9a84c;
+    background: rgba(201, 168, 76, 0.1);
+    animation: gravityPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes gravityPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.debris-section-title {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    color: rgba(201, 168, 76, 0.6);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+/* ── LEGAL HISTORY TIMELINE ────────────────────────────── */
+.landing-timeline {
+    background: radial-gradient(ellipse 80% 100% at 50% 50%,
+            rgba(79, 195, 247, 0.03) 0%, transparent 70%);
+    gap: 0;
+    padding: 120px 40px;
+}
+
+.timeline-heading {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    background: linear-gradient(135deg, #c9a84c, #4fc3f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    letter-spacing: 0.15em;
+    margin-bottom: 80px;
+    opacity: 0;
+    transform: translateY(30px);
+    will-change: opacity, transform;
+}
+
+.timeline-track {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.timeline-track::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg,
+            transparent,
+            rgba(201, 168, 76, 0.3) 10%,
+            rgba(201, 168, 76, 0.3) 90%,
+            transparent);
+    transform: translateX(-50%);
+}
+
+.timeline-era {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: start;
+    padding: 40px 0;
+    opacity: 0;
+    will-change: opacity, transform;
+}
+
+.timeline-era:nth-child(odd) .era-content {
+    grid-column: 1;
+    text-align: right;
+    padding-right: 40px;
+}
+
+.timeline-era:nth-child(odd) .era-spacer {
+    grid-column: 2;
+}
+
+.timeline-era:nth-child(odd) .era-empty {
+    grid-column: 3;
+}
+
+.timeline-era:nth-child(even) .era-empty {
+    grid-column: 1;
+}
+
+.timeline-era:nth-child(even) .era-spacer {
+    grid-column: 2;
+}
+
+.timeline-era:nth-child(even) .era-content {
+    grid-column: 3;
+    text-align: left;
+    padding-left: 40px;
+}
+
+.era-node {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.era-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #c9a84c;
+    background: #04060f;
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.5);
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.era-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: #4fc3f7;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+}
+
+.era-content {
+    padding-top: 4px;
+}
+
+.era-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #c9a84c;
+    margin-bottom: 8px;
+}
+
+.era-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(232, 234, 240, 0.65);
+    line-height: 1.7;
+    max-width: 320px;
+}
+
+.timeline-era:nth-child(odd) .era-desc {
+    margin-left: auto;
+}
+
+.era-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* ── CTA SECTION ───────────────────────────────────────── */
+.landing-cta {
+    background: radial-gradient(ellipse 60% 60% at 50% 50%,
+            rgba(201, 168, 76, 0.08) 0%, transparent 70%);
+    gap: 32px;
+}
+
+.cta-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    background: linear-gradient(135deg, #c9a84c, #e8eaf0, #4fc3f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    transform: translateY(30px);
+    will-change: opacity, transform;
+}
+
+.cta-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    color: rgba(232, 234, 240, 0.6);
+    font-style: italic;
+    text-align: center;
+    max-width: 500px;
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: opacity, transform;
+}
+
+#btnEnterCosmos {
+    position: relative;
+    padding: 18px 48px;
+    background: transparent;
+    border: 1px solid rgba(201, 168, 76, 0.5);
+    border-radius: 50px;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: #c9a84c;
+    cursor: pointer;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+    will-change: opacity, transform;
+    transition:
+        border-color 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#btnEnterCosmos::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 50%,
+            rgba(201, 168, 76, 0.15), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+}
+
+#btnEnterCosmos:hover {
+    border-color: #c9a84c;
+    box-shadow:
+        0 0 30px rgba(201, 168, 76, 0.4),
+        0 0 60px rgba(201, 168, 76, 0.15);
+    transform: scale(1.03);
+}
+
+#btnEnterCosmos:hover::before {
+    opacity: 1;
+}
+
+#btnEnterCosmos:active {
+    transform: scale(0.98);
+}
+
+.btn-cosmos-text {
+    position: relative;
+    z-index: 1;
+}
+
+/* Warp implosion ring when entering */
+.warp-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #c9a84c;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 8020;
+}
+
+/* ── MORPHING CHAT BUBBLES ─────────────────────────────── */
+.message-content {
+    clip-path: polygon(0% 16px,
+            16px 0%,
+            calc(100% - 16px) 0%,
+            100% 16px,
+            100% calc(100% - 16px),
+            calc(100% - 16px) 100%,
+            16px 100%,
+            0% calc(100% - 16px));
+    transition:
+        clip-path 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background 0.3s ease,
+        box-shadow 0.3s ease;
+    will-change: clip-path;
+}
+
+.message-content:hover {
+    clip-path: polygon(0% 24px,
+            12px 0%,
+            calc(100% - 12px) 0%,
+            100% 24px,
+            100% calc(100% - 12px),
+            calc(100% - 24px) 100%,
+            12px 100%,
+            0% calc(100% - 12px));
+}
+
+.ai-message .message-content:hover {
+    box-shadow: 0 0 20px rgba(79, 195, 247, 0.15);
+}
+
+.user-message .message-content:hover {
+    box-shadow: 0 0 20px rgba(201, 168, 76, 0.15);
+}
+
+/* ── BREATHING INPUT ───────────────────────────────────── */
+.input-wrapper {
+    animation: breathe 5s ease-in-out infinite;
+    will-change: clip-path;
+}
+
+.input-wrapper:focus-within {
+    animation: none;
+    clip-path: none;
+}
+
+@keyframes breathe {
+
+    0%,
+    100% {
+        clip-path: polygon(0% 16px, 16px 0%,
+                calc(100% - 16px) 0%, 100% 16px,
+                100% calc(100% - 16px), calc(100% - 16px) 100%,
+                16px 100%, 0% calc(100% - 16px));
+    }
+
+    50% {
+        clip-path: polygon(0% 6px, 6px 0%,
+                calc(100% - 6px) 0%, 100% 6px,
+                100% calc(100% - 6px), calc(100% - 6px) 100%,
+                6px 100%, 0% calc(100% - 6px));
+        box-shadow: 0 0 16px rgba(201, 168, 76, 0.15);
+    }
+}
+
+/* ── 3D TILT SESSION CARDS ─────────────────────────────── */
+.session-item {
+    transform-style: preserve-3d;
+    transition:
+        transform var(--transition-base),
+        border-color var(--transition-base),
+        box-shadow var(--transition-base);
+    will-change: transform;
+    border-radius: 12px;
+    overflow: visible !important;
+}
+
+/* Liquid state on hover */
+.session-item:hover {
+    border-radius: 16px 8px 16px 8px;
+    transition:
+        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+        border-radius 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+/* Active card particle ring container */
+.session-item.active .particle-ring-anchor {
+    display: block;
+}
+
+.particle-ring-anchor {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.card-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #c9a84c;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+/* ── GRAVITY ORB CURSOR ────────────────────────────────── */
+.cursor-gravity-orb {
+    position: fixed;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 168, 76, 0.7);
+    box-shadow:
+        0 0 8px rgba(201, 168, 76, 0.3),
+        inset 0 0 8px rgba(201, 168, 76, 0.1);
+    pointer-events: none;
+    z-index: 10000;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease, box-shadow 0.3s ease;
+    mix-blend-mode: screen;
+    will-change: left, top;
+    display: none;
+}
+
+.cursor-gravity-orb.reading-lens {
+    width: 80px;
+    height: 80px;
+    border-color: rgba(79, 195, 247, 0.8);
+    box-shadow:
+        0 0 20px rgba(79, 195, 247, 0.4),
+        inset 0 0 20px rgba(79, 195, 247, 0.1),
+        0 0 40px rgba(79, 195, 247, 0.15);
+    background: radial-gradient(ellipse,
+            rgba(79, 195, 247, 0.08), transparent 70%);
+}
+
+.cursor-gravity-orb.on-button {
+    width: 48px;
+    height: 48px;
+    border-color: rgba(0, 229, 255, 0.9);
+    box-shadow:
+        0 0 16px rgba(0, 229, 255, 0.5),
+        inset 0 0 12px rgba(0, 229, 255, 0.1);
+}
+
+/* Nebula trail dots */
+.cursor-nebula-dot {
+    position: fixed;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    will-change: left, top, opacity;
+    mix-blend-mode: screen;
+}
+
+/* ── PHYSICS MESSAGE ANIMATIONS ────────────────────────── */
+.message-bubble.ai-message {
+    transform-origin: left center;
+}
+
+.message-bubble.user-message {
+    transform-origin: right center;
+}
+
+/* Spring entrance for new AI messages */
+@keyframes aiBounceIn {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scaleY(0.8);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(-12px) scaleY(1.05);
+    }
+
+    80% {
+        transform: translateY(5px) scaleY(0.98);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scaleY(1);
+    }
+}
+
+/* Arc launch for user messages */
+@keyframes userArcLaunch {
+    0% {
+        opacity: 0;
+        transform: translateX(60px) translateY(30px) rotate(3deg);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateX(-8px) translateY(-8px) rotate(-1deg);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0) translateY(0) rotate(0deg);
+    }
+}
+
+/* Soft-body push */
+@keyframes softPush {
+    0% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-8px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.message-bubble.new-ai {
+    animation: aiBounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.message-bubble.new-user {
+    animation: userArcLaunch 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.message-bubble.soft-push {
+    animation: softPush 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── WARP SPEED TRANSITION ─────────────────────────────── */
+#warpCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 7000;
+    pointer-events: none;
+    opacity: 0;
+    will-change: opacity;
+    display: block;
+}
+
+#warpCanvas.active {
+    opacity: 1;
+}
+
+/* ── LEGAL ANNOTATION CARDS ────────────────────────────── */
+.legal-annotation {
+    position: fixed;
+    right: calc(5vw);
+    background: rgba(10, 14, 26, 0.85);
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 12px;
+    padding: 12px 16px;
+    max-width: 220px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 0.4s ease,
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.legal-annotation.visible {
+    opacity: 1;
+    transform: translateY(-10px);
+    animation: annotationDrift 4s ease-in-out infinite;
+}
+
+@keyframes annotationDrift {
+
+    0%,
+    100% {
+        transform: translateY(-10px);
+    }
+
+    50% {
+        transform: translateY(-18px);
+    }
+}
+
+.annotation-term {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #c9a84c;
+    margin-bottom: 4px;
+}
+
+.annotation-def {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    color: rgba(232, 234, 240, 0.7);
+    line-height: 1.5;
+}
+
+.annotation-connector {
+    position: fixed;
+    width: 1px;
+    background: linear-gradient(to right,
+            transparent,
+            rgba(201, 168, 76, 0.4));
+    pointer-events: none;
+    z-index: 499;
+}
+
+/* Statute tooltip */
+.statute-ref {
+    cursor: help;
+    border-bottom: 1px dashed rgba(201, 168, 76, 0.5);
+    color: rgba(201, 168, 76, 0.9);
+    position: relative;
+    display: inline;
+}
+
+.statute-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: rgba(10, 14, 26, 0.95);
+    border: 1px solid rgba(79, 195, 247, 0.35);
+    border-radius: 8px;
+    padding: 8px 12px;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: #4fc3f7;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 600;
+    animation: tooltipDrift 3s ease-in-out infinite;
+    transition: opacity 0.3s ease;
+}
+
+.statute-ref:hover .statute-tooltip {
+    opacity: 1;
+}
+
+@keyframes tooltipDrift {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-6px);
+    }
+}
+
+/* ── CONSTELLATION IDLE OVERLAY ────────────────────────── */
+.constellation-label {
+    position: fixed;
+    bottom: 20px;
+    right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(201, 168, 76, 0.3);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.constellation-label.visible {
+    opacity: 1;
+}
+
+/* ── AI THINKING PULSE ─────────────────────────────────── */
+.thinking-pulse-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    will-change: opacity;
+    transition: opacity 0.5s ease;
+}
+
+.thinking-pulse-canvas.active {
+    opacity: 1;
+}
+
+/* ── REDUCED MOTION KILL-SWITCH ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+    /* Landing: skip scrollytelling, go straight to app */
+    #landingOverlay {
+        display: none !important;
+    }
+
+    /* Disable all custom animation additions */
+    .cursor-gravity-orb,
+    .cursor-nebula-dot {
+        display: none !important;
+    }
+
+    .message-content {
+        clip-path: none !important;
+        animation: none !important;
+    }
+
+    .input-wrapper {
+        animation: none !important;
+        clip-path: none !important;
+    }
+
+    .message-bubble.new-ai,
+    .message-bubble.new-user,
+    .message-bubble.soft-push {
+        animation: none !important;
+    }
+
+    .session-item {
+        transform: none !important;
+        border-radius: 12px !important;
+    }
+
+    #warpCanvas {
+        display: none !important;
+    }
+
+    .legal-annotation,
+    .legal-annotation.visible {
+        animation: none !important;
+        opacity: 1;
+        transform: none;
+    }
+
+    .statute-tooltip {
+        animation: none !important;
+    }
+
+    .debris-term {
+        animation: none !important;
+    }
+
+    .hero-scales-svg {
+        animation: none !important;
+    }
+
+    .scroll-hint {
+        animation: none !important;
+    }
+
+    .scroll-hint-line {
+        animation: none !important;
+    }
+
+    /* Make entrance animations instant */
+    .hero-eyebrow,
+    .hero-headline,
+    .hero-sub,
+    .cta-title,
+    .cta-sub,
+    #btnEnterCosmos,
+    .timeline-heading,
+    .timeline-era {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
+/* ── MOBILE RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 768px) {
+    .landing-section {
+        padding: 60px 24px;
+    }
+
+    .hero-headline {
+        font-size: 2rem;
+    }
+
+    .timeline-track::before {
+        left: 24px;
+    }
+
+    .timeline-era {
+        grid-template-columns: 48px 1fr;
+        grid-template-areas: "node content";
+    }
+
+    .timeline-era:nth-child(odd) .era-content,
+    .timeline-era:nth-child(even) .era-content {
+        grid-column: 2;
+        grid-row: 1;
+        text-align: left;
+        padding-left: 16px;
+        padding-right: 0;
+    }
+
+    .timeline-era:nth-child(odd) .era-desc {
+        margin-left: 0;
+    }
+
+    .era-node {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .era-empty {
+        display: none !important;
+    }
+
+    .timeline-era:nth-child(odd) .era-empty,
+    .timeline-era:nth-child(even) .era-empty {
+        display: none;
+    }
+
+    .legal-annotation {
+        display: none;
+    }
+
+    .cursor-gravity-orb,
+    .cursor-nebula-dot {
+        display: none !important;
+    }
+}
