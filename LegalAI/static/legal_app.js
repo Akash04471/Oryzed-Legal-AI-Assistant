@@ -476,8 +476,14 @@
                 const res = await fetch(`/api/chat/${S.sessionId}/message`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
                 const data = await res.json();
                 hideThinking(thinkBub);
-                appendMsg('assistant', data.response || 'I encountered an error. Please try again.', true);
-                await loadSessions();
+
+                if (res.ok && data.status === 'success' && data.response) {
+                    appendMsg('assistant', data.response, true);
+                    await loadSessions();
+                } else {
+                    const fallbackErr = data.error || data.details || 'I encountered an error. Please try again.';
+                    appendMsg('assistant', String(fallbackErr), true);
+                }
             } catch (e) {
                 hideThinking(thinkBub);
                 appendMsg('assistant', 'Network error. Please try again.', true);

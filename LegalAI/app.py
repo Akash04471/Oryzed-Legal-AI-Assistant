@@ -14,19 +14,96 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from typing import Dict, Any # For type hinting the tool's run method
+from typing import Optional
+import re
 
 # Load environment variables
 load_dotenv()
-if not os.environ.get("GROQ_API_KEY"):
-    raise ValueError("GROQ_API_KEY is not set. Please set it in the environment or in a .env file.")
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here")
 
-print("GROQ_API_KEY =", os.environ.get("GROQ_API_KEY"))
 # Database setup
 DB_PATH = "legal_chat.db"
+
+
+def _get_llm_api_key() -> str:
+    """
+    Resolve provider key in a backward-compatible way.
+
+    Primary key is GROQ_API_KEY. If missing, OPENAI_API_KEY is accepted as
+    fallback because some environments only define a generic provider key.
+    """
+    return (os.environ.get("GROQ_API_KEY") or os.environ.get("OPENAI_API_KEY") or "").strip()
+
+
+def _looks_like_auth_error(raw_error: str) -> bool:
+    normalized = (raw_error or "").lower()
+    patterns = [
+        "invalid api key",
+        "invalid_api_key",
+        "authentication",
+        "unauthorized",
+        "incorrect api key",
+        "api key",
+    ]
+    return any(p in normalized for p in patterns)
+
+
+def _fallback_legal_response(user_message: str) -> str:
+    """
+    Safe fallback response when model provider is unavailable.
+    Keeps legal UX functional even when external LLM auth/config fails.
+    """
+    msg = (user_message or "").lower()
+
+    if "fir" in msg or "first information report" in msg:
+        return """## Facts & Context
+You are asking about the process to file an FIR in India.
+
+## Legal Issues Identified
+1. Where and how an FIR can be registered.
+2. What to do if police refuse to register an FIR.
+
+## Legal Analysis
+An FIR is the first formal information recorded by police regarding a cognizable offence.
+You may file it at the police station having jurisdiction, and zero FIR can also be filed at any police station in urgent matters.
+
+## Applicable Laws & Sections
+Section 173 Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS) (earlier Section 154 CrPC):
+Police shall record information relating to cognizable offences.
+
+## Relevant Case Law
+Lalita Kumari v. Government of Uttar Pradesh (2013) 14 SCC 1:
+Registration of FIR is mandatory when information discloses a cognizable offence.
+
+## Conclusion
+Practical steps:
+1. Go to police station and provide complaint with facts, date, place, accused details if known, and evidence.
+2. Ask for FIR number and free copy after registration.
+3. If refused, send complaint to Superintendent of Police (SP).
+4. If still not registered, approach Magistrate under applicable BNSS/CrPC remedy.
+"""
+
+    return """## Facts & Context
+Your legal query was received, but the AI provider is temporarily unavailable.
+
+## Legal Issues Identified
+The backend could not access the legal reasoning model due to configuration/authentication failure.
+
+## Legal Analysis
+The application has stored your question and can continue session history, but advanced AI legal synthesis is currently limited.
+
+## Applicable Laws & Sections
+N/A until the external model connection is restored.
+
+## Relevant Case Law
+N/A in fallback mode.
+
+## Conclusion
+Please retry after fixing server API credentials. If you share your legal question, I can still provide a basic procedural response.
+"""
 
 def init_db():
     """Initialize the database with required tables."""
@@ -55,6 +132,15 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+
+def ensure_session_exists(session_id: str) -> bool:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1 FROM chat_sessions WHERE id = ?", (session_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result is not None
 
 def create_new_session():
     session_id = str(uuid.uuid4())
@@ -222,20 +308,46 @@ STRICT RULES:
 7. Use the LawbhoomiScraperTool for detailed legal concept notes.
 8. Use DuckDuckGoTools for current case law and recent judgments."""
 
-# Fix 3 — Initialize agent ONCE at startup, not per request
-legal_agent = Agent(
-    model=Groq(id="llama-3.3-70b-versatile", temperature=0.1),
-    description=LEGAL_SYSTEM_PROMPT,
-    instructions=[
-        "Always follow the 6-section structured format.",
-        "Only answer legal questions — refuse all non-legal queries.",
-        "Cite specific Acts, Sections, and case law with years.",
-        "Use LawbhoomiScraperTool for detailed legal notes.",
-        "Use DuckDuckGoTools for current judgments and recent precedents.",
-    ],
-    tools=[DuckDuckGoTools(), LawbhoomiScraperTool()],
-    markdown=True,
-)
+LLM_READY = False
+LLM_INIT_ERROR = ""
+legal_agent: Optional[Agent] = None
+
+
+def init_legal_agent() -> None:
+    global legal_agent, LLM_READY, LLM_INIT_ERROR
+
+    api_key = _get_llm_api_key()
+    if not api_key:
+        LLM_READY = False
+        LLM_INIT_ERROR = "Missing GROQ_API_KEY (or OPENAI_API_KEY fallback)."
+        legal_agent = None
+        app.logger.warning("LLM disabled: %s", LLM_INIT_ERROR)
+        return
+
+    # Normalize to GROQ_API_KEY so agno/groq model reads expected env var.
+    os.environ["GROQ_API_KEY"] = api_key
+
+    try:
+        legal_agent = Agent(
+            model=Groq(id="llama-3.3-70b-versatile", temperature=0.1),
+            description=LEGAL_SYSTEM_PROMPT,
+            instructions=[
+                "Always follow the 6-section structured format.",
+                "Only answer legal questions — refuse all non-legal queries.",
+                "Cite specific Acts, Sections, and case law with years.",
+                "Use LawbhoomiScraperTool for detailed legal notes.",
+                "Use DuckDuckGoTools for current judgments and recent precedents.",
+            ],
+            tools=[DuckDuckGoTools(), LawbhoomiScraperTool()],
+            markdown=True,
+        )
+        LLM_READY = True
+        LLM_INIT_ERROR = ""
+    except Exception as e:
+        LLM_READY = False
+        LLM_INIT_ERROR = str(e)
+        legal_agent = None
+        app.logger.exception("Failed to initialize legal agent")
 
 # Fix 2 — context window increased to 10 messages, proper format
 def get_chat_context(session_id, limit=10):
@@ -261,7 +373,12 @@ def index():
 # Fix 5 — Health endpoint (needed by loading screen)
 @app.route("/api/health")
 def health():
-    return jsonify({"status": "ok", "model": "llama-3.3-70b-versatile"})
+    return jsonify({
+        "status": "ok",
+        "model": "llama-3.3-70b-versatile",
+        "llm_ready": LLM_READY,
+        "llm_error": LLM_INIT_ERROR if not LLM_READY else "",
+    })
 
 @app.route("/api/new_session", methods=["POST"])
 def new_session():
@@ -279,6 +396,9 @@ def get_chat(session_id):
 @app.route("/api/chat/<session_id>/message", methods=["POST"])
 def send_message(session_id):
     try:
+        if not ensure_session_exists(session_id):
+            return jsonify({"error": "Session not found"}), 404
+
         data = request.get_json()
         user_message = data.get("message", "").strip()
 
@@ -301,12 +421,21 @@ def send_message(session_id):
 
         # Fix 3 — use the singleton agent
         # Fix 4 — proper error handling
-        try:
-            response = legal_agent.run(full_prompt)
-            ai_response = response.content if hasattr(response, 'content') else str(response)
-        except Exception as agent_err:
-            app.logger.error(f"Agent error in send_message: {agent_err}")
-            ai_response = "I encountered an error processing your legal query. Please rephrase and try again."
+        if not LLM_READY or legal_agent is None:
+            ai_response = _fallback_legal_response(user_message)
+        else:
+            try:
+                response = legal_agent.run(full_prompt)
+                ai_response = response.content if hasattr(response, 'content') else str(response)
+
+                # Some provider SDK errors are returned as plain content strings.
+                # Guard against leaking raw provider payloads to the user.
+                if _looks_like_auth_error(ai_response):
+                    app.logger.error("Provider auth/config error in model response: %s", ai_response)
+                    ai_response = _fallback_legal_response(user_message)
+            except Exception as agent_err:
+                app.logger.error(f"Agent error in send_message: {agent_err}")
+                ai_response = _fallback_legal_response(user_message)
 
         save_message(session_id, "assistant", ai_response)
 
@@ -335,6 +464,9 @@ def delete_session(session_id):
 @app.route("/api/chat/<session_id>/edit/<int:message_id>", methods=["PUT"])
 def edit_message(session_id, message_id):
     try:
+        if not ensure_session_exists(session_id):
+            return jsonify({"error": "Session not found"}), 404
+
         data = request.get_json()
         new_message = data.get("message", "").strip()
 
@@ -381,12 +513,18 @@ def edit_message(session_id, message_id):
         else:
             full_prompt = f"{new_message}\n\nProvide a complete legal analysis following the structured 6-section format."
 
-        try:
-            response = legal_agent.run(full_prompt)
-            ai_response = response.content if hasattr(response, 'content') else str(response)
-        except Exception as agent_err:
-            app.logger.error(f"Agent error in edit_message: {agent_err}")
-            ai_response = "I encountered an error processing your legal query. Please rephrase and try again."
+        if not LLM_READY or legal_agent is None:
+            ai_response = _fallback_legal_response(new_message)
+        else:
+            try:
+                response = legal_agent.run(full_prompt)
+                ai_response = response.content if hasattr(response, 'content') else str(response)
+                if _looks_like_auth_error(ai_response):
+                    app.logger.error("Provider auth/config error in model response: %s", ai_response)
+                    ai_response = _fallback_legal_response(new_message)
+            except Exception as agent_err:
+                app.logger.error(f"Agent error in edit_message: {agent_err}")
+                ai_response = _fallback_legal_response(new_message)
 
         save_message(session_id, "assistant", ai_response)
 
@@ -400,6 +538,9 @@ def edit_message(session_id, message_id):
 #                  RUN APP
 # ------------------------------------------------------
 
+init_db()
+init_legal_agent()
+
+
 if __name__ == "__main__":
-    init_db() 
     app.run(host="0.0.0.0", port=8080, debug=True)
