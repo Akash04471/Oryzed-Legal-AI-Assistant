@@ -21,6 +21,7 @@
 
     <!-- App Styles -->
     <link rel="stylesheet" href="/static/legal_style_final.css" />
+    <link rel="stylesheet" href="/static/css/legal_animations.css" />
 
     <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" defer></script>
@@ -35,18 +36,87 @@
     <!-- ═══ LIVE WALLPAPER CANVAS ═══ -->
     <canvas id="bgCanvas" aria-hidden="true"></canvas>
 
-    <!-- ═══ LOADING SCREEN ═══ -->
-    <div id="loadingScreen" role="status" aria-label="Loading Oryzed">
-        <video id="ljLoadVideo" class="lj-load-video" autoplay muted playsinline aria-hidden="true">
-            <source src="/static/lj_video.mp4" type="video/mp4">
+    <!-- ═══ ADVANCED LOADING SCREEN ═══ -->
+    <div id="loadingScreen" class="adv-loading-screen" role="status" aria-label="Loading Oryzed">
+
+        <!-- Noise texture overlay (SVG filter) -->
+        <svg class="adv-noise-texture" aria-hidden="true">
+            <filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter>
+            <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+        </svg>
+
+        <!-- Faded background video -->
+        <video class="adv-bg-video" autoplay loop muted playsinline aria-hidden="true">
+            <source src="/static/justice_lady_landingpage.mp4" type="video/mp4">
         </video>
-        <div class="loading-text-wrap">
-            <div id="loadingBrand" class="loading-brand" aria-live="polite"></div>
-            <div id="loadingStatus" class="loading-status">Awakening Judicial Intelligence…</div>
-            <div class="loading-bar-wrap">
-                <div id="loadingBar" class="loading-bar"></div>
+        <div class="adv-grid-layer" aria-hidden="true">
+            <svg width="100%" height="100%">
+                <defs>
+                    <pattern id="oryzedGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+                        <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="0.5" class="adv-grid-path"/>
+                    </pattern>
+                    <linearGradient id="gridFade" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="white" stop-opacity="0"/>
+                        <stop offset="50%" stop-color="white" stop-opacity="1"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </linearGradient>
+                    <mask id="gridMask"><rect width="100%" height="100%" fill="url(#gridFade)"/></mask>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#oryzedGrid)" mask="url(#gridMask)"/>
+            </svg>
+        </div>
+
+        <!-- Radial gradient glow -->
+        <div class="adv-radial-glow" aria-hidden="true"></div>
+
+        <!-- Scanning line -->
+        <div id="advScanLine" class="adv-scan-line" aria-hidden="true"></div>
+
+        <!-- Main content -->
+        <div class="adv-content-center">
+            <div class="adv-content-box">
+
+                <!-- Corner brackets (decorative) -->
+                <div class="adv-corner adv-corner-tl"></div>
+                <div class="adv-corner adv-corner-tr"></div>
+                <div class="adv-corner adv-corner-br"></div>
+                <div class="adv-corner adv-corner-bl"></div>
+
+                <!-- Logo morph -->
+                <div class="adv-logo-section">
+                    <div class="adv-logo-glow" aria-hidden="true"></div>
+                    <img src="/static/Oryzed_Logo.png" alt="Oryzed Logo" id="loadingLogoImg" class="adv-logo-img">
+                </div>
+
+                <!-- Brand text -->
+                <div id="loadingBrandText" class="adv-brand-text">ORYZED</div>
+
+                <!-- State indicator -->
+                <div class="adv-state-indicator">
+                    <span class="adv-state-dot"></span>
+                    <span id="loadingStatus" class="adv-state-msg">Initializing System…</span>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="adv-progress-track">
+                    <div id="loadingProgressBar" class="adv-progress-fill"></div>
+                </div>
+
+                <!-- Expanding rings -->
+                <div class="adv-rings-wrap" aria-hidden="true">
+                    <div class="adv-ring-dot"></div>
+                    <div class="adv-ring adv-ring-0"></div>
+                    <div class="adv-ring adv-ring-1"></div>
+                    <div class="adv-ring adv-ring-2"></div>
+                </div>
             </div>
         </div>
+
+        <!-- Ambient particles container -->
+        <div id="advAmbientParticles" class="adv-ambient-particles" aria-hidden="true"></div>
+
+        <!-- Footer branding -->
+        <div class="adv-footer-brand">ORYZED PLATFORM v2.0</div>
     </div>
 
     <!-- ═══ HAMBURGER (always fixed, always visible) ═══ -->
@@ -102,12 +172,12 @@
             <div class="hero-split">
                 <!-- Text side -->
                 <div class="hero-text">
-                    <div class="hero-badge reveal-item">Legal AI Platform · 2026</div>
-                    <h1 id="heroHeadline" class="hero-headline reveal-item">
-                        Justice,<br><span class="hero-accent">Reimagined</span>
+                    <div class="hero-badge reveal-item">Bharat's Advanced Legal AI · 2026</div>
+                    <h1 id="heroHeadline" class="hero-title reveal-item">
+                        Intelligent Legal Research & Analysis
                     </h1>
                     <p class="hero-sub reveal-item">
-                        Designed to empower your expertise,<br>not diminish it.
+                        Elevate your practice with precision-engineered AI that synthesizes Indian jurisprudence, statutes, and precedents in seconds. Designed to empower your expertise, not diminish it.
                     </p>
                     <div class="hero-stats reveal-item">
                         <div class="stat-item">
@@ -130,10 +200,11 @@
                     </button>
                 </div>
 
-                <div class="hero-canvas-wrap" aria-hidden="true">
-                    <video id="ljHeroVideo" class="lj-hero-video" autoplay loop muted playsinline>
-                        <source src="/static/lj_video.mp4" type="video/mp4">
+                <div class="hero-canvas-wrap custom-hero-wrap" aria-hidden="true">
+                    <video id="ljHeroVideo" class="lj-hero-video justice-lady-landing-video" autoplay loop muted playsinline>
+                        <source src="/static/justice_lady_landingpage.mp4" type="video/mp4">
                     </video>
+                    <div class="hero-video-edge-fade"></div>
                     <div class="hero-canvas-glow"></div>
                 </div>
             </div>
@@ -234,15 +305,9 @@
                 <!-- Empty state -->
                 <div id="emptyState" class="empty-state">
                     <div class="empty-icon-wrap" aria-hidden="true">
-                        <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
-                            <polygon points="36,6 64,60 8,60" stroke="#4fc3f7" stroke-width="1.4"
-                                fill="rgba(26,110,181,0.1)" class="empty-poly" />
-                            <circle cx="36" cy="6" r="3.5" fill="#a8e6ff" />
-                            <circle cx="64" cy="60" r="3.5" fill="#4fc3f7" />
-                            <circle cx="8" cy="60" r="3.5" fill="#4fc3f7" />
-                        </svg>
+                        <i class="fas fa-balance-scale" style="font-size: 2.2rem; color: var(--gold); filter: drop-shadow(0 0 16px rgba(201,168,76,0.4));"></i>
                     </div>
-                    <h2 class="empty-title">Designed to empower your expertise, not diminish it</h2>
+                    <h2 class="empty-title">Designed to Empower Your Expertise, Not Diminish It</h2>
                     <p class="empty-sub">Ask about Indian law, case analysis, legal procedures, rights, or any legal
                         matter.</p>
                     <div class="prompt-chips" role="group" aria-label="Quick prompts">

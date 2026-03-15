@@ -14,29 +14,66 @@
         el.play().catch(() => { });
     }
 
-    /* ─── Loading Sequence (time-based, synced to video) ─── */
+    /* ─── Loading Sequence (Advanced Animated) ─── */
     const Loader = (function () {
         const PHASES = [
-            { t: 0, pct: 6, msg: 'Awakening Judicial Intelligence…' },
-            { t: 900, pct: 24, msg: 'Summoning Lady Justice…' },
-            { t: 2000, pct: 48, msg: 'Weaving the constellation…' },
-            { t: 3100, pct: 70, msg: 'Calibrating the scales…' },
-            { t: 4100, pct: 88, msg: 'Entering the Judicial Cosmos…' },
+            { t: 0, pct: 12, msg: 'Initializing System…' },
+            { t: 600, pct: 28, msg: 'Connecting to Judicial Matrix…' },
+            { t: 1400, pct: 48, msg: 'Synthesizing Precedents…' },
+            { t: 2200, pct: 68, msg: 'Calibrating AI Models…' },
+            { t: 3000, pct: 85, msg: 'Loading Legal Corpus…' },
+            { t: 3800, pct: 95, msg: 'Finalizing Deployment…' },
         ];
-        const BRAND_REVEAL = 4900; // ms — when ORYZED types in
-        const EXIT_AFTER = 6000; // ms — fade out
+        const EXIT_AFTER = 4800;
+
+        function spawnAmbientParticles(container) {
+            if (!container || RM) return;
+            /* Inject keyframes once */
+            if (!document.getElementById('advAmbientStyles')) {
+                const s = document.createElement('style');
+                s.id = 'advAmbientStyles';
+                s.textContent = `
+                    @keyframes ambientRise {
+                        0%   { transform: translateY(0) scale(0); opacity: 0; }
+                        20%  { opacity: 1; transform: translateY(-40px) scale(1.5); }
+                        100% { transform: translateY(-200px) scale(0); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(s);
+            }
+            for (let i = 0; i < 15; i++) {
+                const p = document.createElement('div');
+                const dur = 3 + Math.random() * 2;
+                p.style.cssText = `
+                    position: absolute;
+                    width: 4px; height: 4px;
+                    background: rgba(6, 182, 212, 0.4);
+                    border-radius: 50%;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation: ambientRise ${dur}s ease-out ${Math.random() * 2}s infinite;
+                    pointer-events: none;
+                `;
+                container.appendChild(p);
+            }
+        }
 
         function run(done) {
             const screen = document.getElementById('loadingScreen');
-            const video = document.getElementById('ljLoadVideo');
-            const barEl = document.getElementById('loadingBar');
+            const barEl = document.getElementById('loadingProgressBar');
             const statusEl = document.getElementById('loadingStatus');
-            const brandEl = document.getElementById('loadingBrand');
+            const ambientBox = document.getElementById('advAmbientParticles');
+            const bgVideo = screen && screen.querySelector('.adv-bg-video');
+            const landingPage = document.getElementById('landingPage');
 
-            if (RM) { if (screen) screen.style.display = 'none'; done(); return; }
+            /* Hide landing page during loading */
+            if (landingPage) { landingPage.style.opacity = '0'; landingPage.style.visibility = 'hidden'; }
 
-            /* Force video playback */
-            playVideo(video);
+            if (RM) { if (screen) screen.style.display = 'none'; if (landingPage) { landingPage.style.opacity = '1'; landingPage.style.visibility = 'visible'; } done(); return; }
+
+            /* Force bg video playback */
+            playVideo(bgVideo);
+            spawnAmbientParticles(ambientBox);
 
             /* Phase progression */
             PHASES.forEach(p => {
@@ -46,35 +83,58 @@
                 }, p.t);
             });
 
-            /* Type "ORYZED" */
             setTimeout(() => {
-                if (statusEl) statusEl.textContent = '';
-                if (brandEl) brandEl.textContent = '';
-                if (barEl) barEl.style.width = '96%';
-                const txt = 'ORYZED'; let i = 0;
-                function tick() {
-                    if (i >= txt.length) {
-                        if (barEl) barEl.style.width = '100%';
-                        return;
-                    }
-                    if (brandEl) brandEl.textContent += txt[i++];
-                    setTimeout(tick, 90);
-                }
-                tick();
-            }, BRAND_REVEAL);
+                if (barEl) barEl.style.width = '100%';
+                if (statusEl) statusEl.textContent = 'System Ready.';
+            }, EXIT_AFTER - 600);
 
             /* Exit */
             setTimeout(() => {
                 if (screen) {
-                    screen.style.transition = 'opacity 0.7s ease';
                     screen.style.opacity = '0';
-                    setTimeout(() => { screen.style.display = 'none'; done(); }, 720);
+                    screen.style.transform = 'scale(1.04)';
+                    setTimeout(() => {
+                        screen.style.display = 'none';
+                        /* Reveal landing page */
+                        if (landingPage) {
+                            landingPage.style.transition = 'opacity 0.6s ease-out, visibility 0s';
+                            landingPage.style.opacity = '1';
+                            landingPage.style.visibility = 'visible';
+                        }
+                        done();
+                    }, 850);
                 } else { done(); }
             }, EXIT_AFTER);
         }
 
         return { run };
     }());
+
+    /* ─── 4D Interactive Tilt for Hero Video Card ─── */
+    (function init4DTilt() {
+        const wrap = document.querySelector('.custom-hero-wrap');
+        if (!wrap || RM) return;
+        const video = wrap.querySelector('.lj-hero-video');
+        if (!video) return;
+
+        const MAX_TILT = 12; // degrees
+
+        wrap.addEventListener('mousemove', function (e) {
+            const rect = wrap.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = (e.clientX - cx) / (rect.width / 2);  // -1 to 1
+            const dy = (e.clientY - cy) / (rect.height / 2); // -1 to 1
+            const rotY = dx * MAX_TILT;
+            const rotX = -dy * MAX_TILT;
+            video.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.04, 1.04, 1.04)`;
+        });
+
+        wrap.addEventListener('mouseleave', function () {
+            video.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+        });
+    }());
+
 
     /* ─── Background Mesh Canvas ─── */
     const BgCanvas = (function () {

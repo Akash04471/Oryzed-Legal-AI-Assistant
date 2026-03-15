@@ -71,15 +71,13 @@
 
 /* 2. Hero section video */
 .lj-hero-video {
-    width: 114%;
-    max-width: none;
-    height: 114%;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
     display: block;
-    object-fit: cover;
-    /* Shift frame up-left so bottom-right source watermark stays outside viewport */
-    transform: translate(-6%, -4%);
+    object-fit: contain;
     mix-blend-mode: screen;
-    filter: drop-shadow(0 0 28px rgba(79, 195, 247, 0.35));
+    filter: drop-shadow(0 0 22px rgba(79, 195, 247, 0.3));
     border-radius: 0;
     border: none;
     outline: none;
@@ -170,72 +168,9 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   LOADING SCREEN
+   LOADING SCREEN (styles moved to legal_animations.css)
    ───────────────────────────────────────────── */
-#loadingScreen {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: var(--bg-deep);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2.5rem;
-    transition: opacity 0.7s var(--ease-out);
-}
-
-#loadingScreen.fade-out {
-    opacity: 0;
-    pointer-events: none;
-}
-
-#ladyJusticeCanvas {
-    width: min(380px, 88vw);
-    height: min(380px, 88vw);
-}
-
-.loading-text-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.7rem;
-    text-align: center;
-}
-
-.loading-brand {
-    font-family: var(--font-mono);
-    font-size: 1.8rem;
-    font-weight: 500;
-    letter-spacing: 0.5em;
-    color: var(--hotspot);
-    min-height: 2rem;
-    text-shadow: 0 0 30px rgba(168, 230, 255, 0.5);
-}
-
-.loading-status {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    letter-spacing: 0.1em;
-    min-height: 1.1em;
-    font-family: var(--font-mono);
-}
-
-.loading-bar-wrap {
-    width: min(280px, 72vw);
-    height: 2px;
-    background: rgba(79, 195, 247, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.loading-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--primary), var(--ice), var(--hotspot));
-    border-radius: 2px;
-    transition: width 0.35s var(--ease-out);
-}
+/* Old styles removed — see .adv-loading-screen in legal_animations.css */
 
 /* ─────────────────────────────────────────────
    HAMBURGER (always fixed, always visible)
@@ -644,6 +579,45 @@ body {
     text-shadow: 0 0 40px rgba(79, 195, 247, 0.5);
 }
 
+.hero-title {
+    font-family: var(--font-brand);
+    font-size: clamp(2rem, 4.5vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #c9a84c 0%, #e8eaf0 40%, #4fc3f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.03em;
+}
+
+.hero-logo-wrap {
+    width: min(440px, 78vw);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    isolation: isolate;
+}
+
+.oryzed-hero-logo-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 26px rgba(79, 195, 247, 0.32));
+}
+
+.hero-logo-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 12% -10%;
+    background: radial-gradient(circle at 42% 52%, rgba(79, 195, 247, 0.2) 0%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+}
+
 .hero-sub {
     font-size: 1.05rem;
     line-height: 1.7;
@@ -724,11 +698,20 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 480px;
-    aspect-ratio: 16 / 10;
+    max-width: 540px;
+    min-height: 360px;
     overflow: hidden;
     border: none;
     border-radius: 0;
+}
+
+.hero-video-edge-fade {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at center, transparent 42%, rgba(2, 11, 24, 0.24) 78%, rgba(2, 11, 24, 0.58) 100%),
+        linear-gradient(90deg, rgba(2, 11, 24, 0.4) 0%, transparent 18%, transparent 82%, rgba(2, 11, 24, 0.4) 100%);
+    pointer-events: none;
 }
 
 .hero-canvas-wrap canvas {
@@ -1141,7 +1124,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 1.2rem;
     text-align: center;
     min-height: calc(100dvh - var(--topbar-h) - 130px);
     animation: fadeUp 0.6s var(--ease-out) both;
@@ -1149,6 +1132,7 @@ body {
 
 .empty-icon-wrap {
     animation: breathePoly 3.5s ease-in-out infinite;
+    margin-bottom: 0.6rem;
 }
 
 .empty-poly {
@@ -1170,18 +1154,19 @@ body {
 
 .empty-title {
     font-family: var(--font-brand);
-    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    font-size: clamp(1.15rem, 3vw, 1.55rem);
     color: var(--hotspot);
     font-weight: 400;
-    max-width: 480px;
-    line-height: 1.4;
+    max-width: 560px;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
 }
 
 .empty-sub {
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     color: var(--text-muted);
-    max-width: 420px;
-    line-height: 1.65;
+    max-width: 480px;
+    line-height: 1.7;
 }
 
 .prompt-chips {
@@ -1680,10 +1665,17 @@ body {
 
     .hero-canvas-wrap {
         order: -1;
+        min-height: 300px;
     }
 
     .hero-canvas-wrap canvas {
         max-width: 280px;
+    }
+
+    .hero-logo-wrap {
+        width: min(360px, 84vw);
+        margin: 0 auto;
+        justify-content: center;
     }
 
     .btn-hero-cta {
@@ -1712,8 +1704,12 @@ body {
         display: none !important;
     }
 
-    .hero-headline {
-        font-size: 2rem;
+    .hero-logo-wrap {
+        width: min(300px, 84vw);
+    }
+
+    .hero-canvas-wrap {
+        min-height: 240px;
     }
 
     .btn-hero-cta {
