@@ -486,7 +486,15 @@ def init_legal_agent() -> None:
         LLM_READY = False
         LLM_INIT_ERROR = str(e)
         legal_agent = None
-        app.logger.exception("Failed to initialize legal agent")
+        # Use a safe print if logger isn't ready
+        print(f"Failed to initialize legal agent: {e}")
+
+# Fix 2 + 3 + 4: Lazy initialization of the agent
+def get_legal_agent():
+    global legal_agent
+    if legal_agent is None and not LLM_READY:
+        init_legal_agent()
+    return legal_agent
 
 # Fix 2 — context window increased to 10 messages, proper format
 def get_chat_context(session_id: str, user_id: int, limit=10):
@@ -634,6 +642,9 @@ def send_message(session_id):
 
         save_message(session_id, "user", user_message, user_id)
 
+        # Lazy init agent if needed
+        agent = get_legal_agent()
+
         # Fix 2 — inject formatted conversation context (last 10 msgs)
         history_text = get_chat_context(session_id, user_id)
         if history_text:
@@ -643,11 +654,11 @@ def send_message(session_id):
 
         # Fix 3 — use the singleton agent
         # Fix 4 — proper error handling
-        if not LLM_READY or legal_agent is None:
+        if not LLM_READY or agent is None:
             ai_response = _fallback_legal_response(user_message)
         else:
             try:
-                response = legal_agent.run(full_prompt)
+                response = agent.run(full_prompt)
                 ai_response = response.content if hasattr(response, 'content') else str(response)
 
                 # Some provider SDK errors are returned as plain content strings.
@@ -783,7 +794,7 @@ def edit_message(session_id, message_id):
 # ------------------------------------------------------
 
 init_db()
-init_legal_agent()
+# AI agent will be lazy-loaded on demand
 
 
 if __name__ == "__main__":
