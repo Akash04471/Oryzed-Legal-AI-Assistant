@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from dotenv import load_dotenv
 # Agno imports
 from agno.agent import Agent
@@ -10,12 +10,14 @@ import sqlite3
 import uuid
 from datetime import datetime
 import json
+from functools import wraps
 # Web Scraping Imports
 import requests
 from bs4 import BeautifulSoup
 from typing import Dict, Any # For type hinting the tool's run method
 from typing import Optional
 import re
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables
 load_dotenv()
@@ -111,6 +113,16 @@ def init_db():
     cursor = conn.cursor()
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS chat_sessions (
             id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
@@ -130,64 +142,144 @@ def init_db():
         )
     """)
 
+    # Backward-compatible migration for existing databases.
+    cursor.execute("PRAGMA table_info(users)")
+    user_columns = [column[1] for column in cursor.fetchall()]
+    if "email" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN email TEXT")
+
+    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+
+    cursor.execute("PRAGMA table_info(chat_sessions)")
+    session_columns = [column[1] for column in cursor.fetchall()]
+    if "user_id" not in session_columns:
+        cursor.execute("ALTER TABLE chat_sessions ADD COLUMN user_id INTEGER")
+
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)")
+
     conn.commit()
     conn.close()
 
 
-def ensure_session_exists(session_id: str) -> bool:
+def get_user_by_username(username: str):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT 1 FROM chat_sessions WHERE id = ?", (session_id,))
+    cursor.execute("SELECT id, username, email, password_hash FROM users WHERE username = ?", (username,))
+    user = cursor.fetchone()
+    conn.close()
+    if not user:
+        return None
+    return {"id": user[0], "username": user[1], "email": user[2], "password_hash": user[3]}
+
+
+def get_user_by_email(email: str):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, email, password_hash FROM users WHERE email = ?", (email,))
+    user = cursor.fetchone()
+    conn.close()
+    if not user:
+        return None
+    return {"id": user[0], "username": user[1], "email": user[2], "password_hash": user[3]}
+
+
+def create_user(username: str, email: str, password: str):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    password_hash = generate_password_hash(password)
+    cursor.execute(
+        "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+        (username, email, password_hash),
+    )
+    conn.commit()
+    user_id = cursor.lastrowid
+    conn.close()
+    return user_id
+
+
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapped(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        return view_func(*args, **kwargs)
+
+    return wrapped
+
+
+def api_login_required(view_func):
+    @wraps(view_func)
+    def wrapped(*args, **kwargs):
+        if "user_id" not in session:
+            return jsonify({"error": "Authentication required"}), 401
+        return view_func(*args, **kwargs)
+
+    return wrapped
+
+
+def ensure_session_exists(session_id: str, user_id: int) -> bool:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1 FROM chat_sessions WHERE id = ? AND user_id = ?", (session_id, user_id))
     result = cursor.fetchone()
     conn.close()
     return result is not None
 
-def create_new_session():
+def create_new_session(user_id: int):
     session_id = str(uuid.uuid4())
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO chat_sessions (id, title)
-        VALUES (?, ?)
-    """, (session_id, "New Legal Consultation"))
+        INSERT INTO chat_sessions (id, title, user_id)
+        VALUES (?, ?, ?)
+    """, (session_id, "New Legal Research", user_id))
 
     conn.commit()
     conn.close()
     return session_id
 
-def get_chat_sessions():
+def get_chat_sessions(user_id: int):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT id, title, created_at, updated_at
         FROM chat_sessions
+        WHERE user_id = ?
         ORDER BY updated_at DESC
-    """)
+    """, (user_id,))
 
     sessions = cursor.fetchall()
     conn.close()
 
     return [{"id": s[0], "title": s[1], "created_at": s[2], "updated_at": s[3]} for s in sessions]
 
-def get_chat_history(session_id):
+def get_chat_history(session_id: str, user_id: int):
+    if not ensure_session_exists(session_id, user_id):
+        return None
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT id, role, content, timestamp
-        FROM chat_messages
-        WHERE session_id = ?
+        SELECT m.id, m.role, m.content, m.timestamp
+        FROM chat_messages m
+        INNER JOIN chat_sessions s ON s.id = m.session_id
+        WHERE m.session_id = ? AND s.user_id = ?
         ORDER BY timestamp ASC
-    """, (session_id,))
+    """, (session_id, user_id))
 
     messages = cursor.fetchall()
     conn.close()
 
     return [{"id": m[0], "role": m[1], "content": m[2], "timestamp": m[3]} for m in messages]
 
-def save_message(session_id, role, content):
+def save_message(session_id: str, role: str, content: str, user_id: int):
+    if not ensure_session_exists(session_id, user_id):
+        return False
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -199,13 +291,14 @@ def save_message(session_id, role, content):
     cursor.execute("""
         UPDATE chat_sessions
         SET updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    """, (session_id,))
+        WHERE id = ? AND user_id = ?
+    """, (session_id, user_id))
 
     conn.commit()
     conn.close()
+    return True
 
-def update_session_title(session_id, title):
+def update_session_title(session_id: str, title: str, user_id: int):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -214,8 +307,8 @@ def update_session_title(session_id, title):
     cursor.execute("""
         UPDATE chat_sessions
         SET title = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    """, (display_title, session_id))
+        WHERE id = ? AND user_id = ?
+    """, (display_title, session_id, user_id))
 
     conn.commit()
     conn.close()
@@ -290,23 +383,46 @@ LEGAL_SYSTEM_PROMPT = """You are LegalAI, an expert legal assistant with deep kn
 constitutional law, criminal law, civil law, corporate law, and international law.
 
 STRICT RULES:
-1. ONLY answer legal questions. If asked anything non-legal, respond:
-   "I'm specialized in legal matters only. Please ask a legal question."
-2. ALWAYS structure responses in this EXACT format:
-   ## 📋 Facts & Context
-   ## ⚖️ Legal Issues Identified
-   ## 🔍 Legal Analysis
-   ## 📜 Applicable Laws & Sections
-   ## 🏛️ Relevant Case Law
-   ## ✅ Conclusion
-3. Always cite specific sections (e.g., "Section 302 IPC"), article numbers,
-   and case names with years.
-4. If using web search results, synthesize them — do not paste them verbatim.
-5. Be precise, professional, and cite authoritative sources.
-6. For Indian law queries, prioritize IPC, CrPC, CPC, Constitution of India,
-   and Supreme Court judgments.
-7. Use the LawbhoomiScraperTool for detailed legal concept notes.
-8. Use DuckDuckGoTools for current case law and recent judgments."""
+"🚨 CRITICAL: You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters. Any deviation is strictly prohibited.",
+
+"❌ STRICTLY REFUSE: If asked about anything non-legal (technology, entertainment, sports, personal advice, science, etc.), respond EXACTLY: 'I apologize, but I am a specialized Legal AI Assistant. I can only provide assistance with legal matters, legal research, case analysis, statutory interpretation, and legal consultation. Please ask me a legal question.'",
+
+"✅ LEGAL DOMAIN LIMITATION: You may ONLY answer queries related to Constitutional Law, Criminal Law, Civil Law, Contract Law, Corporate Law, Family Law, Property Law, Administrative Law, Tax Law, Labour Law, Intellectual Property Law, International Law, Procedural Law, Legal Drafting, Case Analysis, Statutory Interpretation, and Legal Consultation.",
+
+"📋 MANDATORY RESPONSE STRUCTURE: Every response MUST strictly follow this order: (1) Introduction, (2) Facts of the Case (if applicable), (3) Legal Issues, (4) Applicable Laws (Acts, Sections, Articles, Rules), (5) Step-by-Step Legal Analysis, (6) Judicial Precedents with proper citations, (7) Conclusion/Judgment, (8) Legal Consultation including remedies, risks, and strategy.",
+
+"⚖️ CASE LAW FORMAT (COMPULSORY): Whenever discussing a case, include: Facts, Legal Issues, Applicable Law (with Sections/Articles), Arguments (if relevant), Judgment, Court’s Reasoning, and Final Holding.",
+
+"🔍 RESEARCH: Use reliable and authoritative legal sources such as Indian Kanoon, SCC Online, Manupatra, Bar & Bench, LiveLaw, Law Bhoomi, CaseMine, Drishti Judiciary, and Law Commission Reports. Ensure all answers are legally accurate and updated.",
+
+"📚 LEGAL AUTHORITY: Always support answers with statutory provisions, case laws with citations, and where relevant, include Law Commission Reports, official gazettes, or recognized legal commentaries.",
+
+"⚖️ LEGAL ANALYSIS: Apply law to facts in a logical, step-by-step manner. Address multiple interpretations where relevant and provide reasoned legal arguments, not just conclusions.",
+
+"💼 PROFESSIONAL LANGUAGE: Use formal, precise, and professional legal language while ensuring clarity and readability. Avoid unnecessary jargon but maintain legal depth.",
+
+"⚖️ ACCURACY & COMPLETENESS: Ensure responses are comprehensive yet concise, legally sound, and free from unsupported claims or assumptions.",
+
+"🔒 ETHICS: Maintain neutrality, objectivity, and legal integrity. Do not provide misleading, speculative, or biased legal advice.",
+
+"🧠 MEMORY & CONTEXT: Maintain continuity across the conversation. Use prior user inputs to refine answers and avoid contradictions.",
+
+"🔄 CONTINUITY: Ensure coherence in ongoing discussions. Do not repeat information unless necessary or requested.",
+
+"❓ FOLLOW-UP MECHANISM: Ask relevant follow-up questions where facts are incomplete, jurisdiction is unclear, or better legal precision is required.",
+
+"⚖️ LEGAL CONSULTATION MODE: Always include practical legal advice such as available remedies, procedural steps, risks, benefits, and likely outcomes.",
+
+"🚫 NO GENERAL ANSWERS: Do not provide vague or generic responses. Every answer must be structured, specific, and legally reasoned.",
+
+"⚖️ STRATEGIC INSIGHT: Where applicable, suggest legal strategy, procedural approach, and alternative remedies available to the user.",
+
+"📈 ADVANCED ANALYSIS (OPTIONAL): Where relevant, include comparative legal position, doctrinal interpretation, or criticism of judicial precedents to enhance depth.",
+
+"⚖️ LEGAL ONLY ENFORCEMENT: Under no circumstances should you answer non-legal queries. Your role is strictly limited to legal consultation and analysis."""
+
+
+
 
 LLM_READY = False
 LLM_INIT_ERROR = ""
@@ -332,12 +448,26 @@ def init_legal_agent() -> None:
             model=Groq(id="llama-3.3-70b-versatile", temperature=0.1),
             description=LEGAL_SYSTEM_PROMPT,
             instructions=[
-                "Always follow the 6-section structured format.",
-                "Only answer legal questions — refuse all non-legal queries.",
-                "Cite specific Acts, Sections, and case law with years.",
-                "Use LawbhoomiScraperTool for detailed legal notes.",
-                "Use DuckDuckGoTools for current judgments and recent precedents.",
-            ],
+                "🚨 CRITICAL: You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters. Any deviation is strictly prohibited.",
+                "❌ STRICTLY REFUSE: If asked about anything non-legal (technology, entertainment, sports, personal advice, science, etc.), respond EXACTLY: 'I apologize, but I am a specialized Legal AI Assistant. I can only provide assistance with legal matters, legal research, case analysis, statutory interpretation, and legal consultation. Please ask me a legal question.'",
+                "✅ LEGAL DOMAIN LIMITATION: You may ONLY answer queries related to Constitutional Law, Criminal Law, Civil Law, Contract Law, Corporate Law, Family Law, Property Law, Administrative Law, Tax Law, Labour Law, Intellectual Property Law, International Law, Procedural Law, Legal Drafting, Case Analysis, Statutory Interpretation, and Legal Consultation.",
+                "📋 MANDATORY RESPONSE STRUCTURE: Every response MUST strictly follow this order: (1) Introduction, (2) Facts of the Case (if applicable), (3) Legal Issues, (4) Applicable Laws (Acts, Sections, Articles, Rules), (5) Step-by-Step Legal Analysis, (6) Judicial Precedents with proper citations, (7) Conclusion/Judgment, (8) Legal Consultation including remedies, risks, and strategy.",
+                "⚖️ CASE LAW FORMAT (COMPULSORY): Whenever discussing a case, include: Facts, Legal Issues, Applicable Law (with Sections/Articles), Arguments (if relevant), Judgment, Court’s Reasoning, and Final Holding.",
+                "🔍 RESEARCH: Use reliable and authoritative legal sources such as Indian Kanoon, SCC Online, Manupatra, Bar & Bench, LiveLaw, Law Bhoomi, CaseMine, Drishti Judiciary, and Law Commission Reports. Ensure all answers are legally accurate and updated.",
+                "📚 LEGAL AUTHORITY: Always support answers with statutory provisions, case laws with citations, and where relevant, include Law Commission Reports, official gazettes, or recognized legal commentaries.",
+                "⚖️ LEGAL ANALYSIS: Apply law to facts in a logical, step-by-step manner. Address multiple interpretations where relevant and provide reasoned legal arguments, not just conclusions.",
+                "💼 PROFESSIONAL LANGUAGE: Use formal, precise, and professional legal language while ensuring clarity and readability. Avoid unnecessary jargon but maintain legal depth.",
+                "⚖️ ACCURACY & COMPLETENESS: Ensure responses are comprehensive yet concise, legally sound, and free from unsupported claims or assumptions.",
+                "🔒 ETHICS: Maintain neutrality, objectivity, and legal integrity. Do not provide misleading, speculative, or biased legal advice.",
+                "🧠 MEMORY & CONTEXT: Maintain continuity across the conversation. Use prior user inputs to refine answers and avoid contradictions.",
+                "🔄 CONTINUITY: Ensure coherence in ongoing discussions. Do not repeat information unless necessary or requested.",
+                "❓ FOLLOW-UP MECHANISM: Ask relevant follow-up questions where facts are incomplete, jurisdiction is unclear, or better legal precision is required.",
+                "⚖️ LEGAL CONSULTATION MODE: Always include practical legal advice such as available remedies, procedural steps, risks, benefits, and likely outcomes.",
+                "🚫 NO GENERAL ANSWERS: Do not provide vague or generic responses. Every answer must be structured, specific, and legally reasoned.",
+                "⚖️ STRATEGIC INSIGHT: Where applicable, suggest legal strategy, procedural approach, and alternative remedies available to the user.",
+                "📈 ADVANCED ANALYSIS (OPTIONAL): Where relevant, include comparative legal position, doctrinal interpretation, or criticism of judicial precedents to enhance depth.",
+                "⚖️ LEGAL ONLY ENFORCEMENT: Under no circumstances should you answer non-legal queries. Your role is strictly limited to legal consultation and analysis."
+         ],
             tools=[DuckDuckGoTools(), LawbhoomiScraperTool()],
             markdown=True,
         )
@@ -350,9 +480,9 @@ def init_legal_agent() -> None:
         app.logger.exception("Failed to initialize legal agent")
 
 # Fix 2 — context window increased to 10 messages, proper format
-def get_chat_context(session_id, limit=10):
+def get_chat_context(session_id: str, user_id: int, limit=10):
     """Return last `limit` messages as a formatted string for injection into the prompt."""
-    messages = get_chat_history(session_id)
+    messages = get_chat_history(session_id, user_id) or []
     history  = messages[-limit:]
     if not history:
         return ""
@@ -367,8 +497,83 @@ def get_chat_context(session_id, limit=10):
 # ------------------------------------------------------
 
 @app.route("/")
+@login_required
 def index():
-    return render_template('legal_chat.html')
+    return render_template('legal_chat.html', username=session.get("username", ""))
+
+
+@app.route("/terms")
+def terms_and_conditions():
+    return render_template("terms.html", username=session.get("username", ""))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if "user_id" in session:
+        return redirect(url_for("index"))
+
+    error = ""
+    notice = ""
+    if request.args.get("signup") == "success":
+        notice = "Account created successfully. Please login to continue."
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        if not email or not password:
+            error = "Email and password are required."
+        else:
+            user = get_user_by_email(email)
+            if not user or not check_password_hash(user["password_hash"], password):
+                error = "Invalid email or password."
+            else:
+                session.clear()
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                return redirect(url_for("index"))
+
+    return render_template("login.html", error=error, notice=notice)
+
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if "user_id" in session:
+        session.clear()
+
+    error = ""
+    if request.method == "POST":
+        username = request.form.get("username", "").strip().lower()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not username or not email or not password or not confirm_password:
+            error = "All fields are required."
+        elif len(username) < 3:
+            error = "Username must be at least 3 characters long."
+        elif not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            error = "Please enter a valid email address."
+        elif len(password) < 8:
+            error = "Password must be at least 8 characters long."
+        elif password != confirm_password:
+            error = "Passwords do not match."
+        elif get_user_by_username(username):
+            error = "Username already exists."
+        elif get_user_by_email(email):
+            error = "Email is already registered."
+        else:
+            create_user(username, email, password)
+            session.clear()
+            return redirect(url_for("login", signup="success"))
+
+    return render_template("signup.html", error=error)
+
+
+@app.route("/logout", methods=["POST", "GET"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 # Fix 5 — Health endpoint (needed by loading screen)
 @app.route("/api/health")
@@ -381,22 +586,30 @@ def health():
     })
 
 @app.route("/api/new_session", methods=["POST"])
+@api_login_required
 def new_session():
-    session_id = create_new_session()
+    session_id = create_new_session(session["user_id"])
     return jsonify({"session_id": session_id, "status": "success"})
 
 @app.route("/api/sessions", methods=["GET"])
+@api_login_required
 def get_sessions_route():
-    return jsonify({"sessions": get_chat_sessions()})
+    return jsonify({"sessions": get_chat_sessions(session["user_id"])})
 
 @app.route("/api/chat/<session_id>", methods=["GET"])
+@api_login_required
 def get_chat(session_id):
-    return jsonify({"history": get_chat_history(session_id)})
+    history = get_chat_history(session_id, session["user_id"])
+    if history is None:
+        return jsonify({"error": "Session not found"}), 404
+    return jsonify({"history": history})
 
 @app.route("/api/chat/<session_id>/message", methods=["POST"])
+@api_login_required
 def send_message(session_id):
     try:
-        if not ensure_session_exists(session_id):
+        user_id = session["user_id"]
+        if not ensure_session_exists(session_id, user_id):
             return jsonify({"error": "Session not found"}), 404
 
         data = request.get_json()
@@ -405,15 +618,15 @@ def send_message(session_id):
         if not user_message:
             return jsonify({"error": "Message cannot be empty"}), 400
 
-        chat_history = get_chat_history(session_id)
+        chat_history = get_chat_history(session_id, user_id) or []
 
         if len(chat_history) == 0:
-            update_session_title(session_id, user_message)
+            update_session_title(session_id, user_message, user_id)
 
-        save_message(session_id, "user", user_message)
+        save_message(session_id, "user", user_message, user_id)
 
         # Fix 2 — inject formatted conversation context (last 10 msgs)
-        history_text = get_chat_context(session_id)
+        history_text = get_chat_context(session_id, user_id)
         if history_text:
             full_prompt = f"""Previous conversation:\n{history_text}\n\nCurrent question: {user_message}\n\nProvide a complete legal analysis following the structured 6-section format."""
         else:
@@ -437,7 +650,7 @@ def send_message(session_id):
                 app.logger.error(f"Agent error in send_message: {agent_err}")
                 ai_response = _fallback_legal_response(user_message)
 
-        save_message(session_id, "assistant", ai_response)
+        save_message(session_id, "assistant", ai_response, user_id)
 
         return jsonify({"response": ai_response, "status": "success"})
 
@@ -446,13 +659,28 @@ def send_message(session_id):
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 @app.route("/api/delete_session/<session_id>", methods=["DELETE"])
+@api_login_required
 def delete_session(session_id):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        user_id = session["user_id"]
 
-        cursor.execute('DELETE FROM chat_messages WHERE session_id = ?', (session_id,))
-        cursor.execute('DELETE FROM chat_sessions WHERE id = ?', (session_id,))
+        cursor.execute(
+            """
+            DELETE FROM chat_messages
+            WHERE session_id IN (
+                SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?
+            )
+            """,
+            (session_id, user_id),
+        )
+        cursor.execute('DELETE FROM chat_sessions WHERE id = ? AND user_id = ?', (session_id, user_id))
+
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({"error": "Session not found"}), 404
+
         conn.commit()
         conn.close()
 
@@ -462,9 +690,11 @@ def delete_session(session_id):
         return jsonify({"error": "Failed to delete session"}), 500
 
 @app.route("/api/chat/<session_id>/edit/<int:message_id>", methods=["PUT"])
+@api_login_required
 def edit_message(session_id, message_id):
     try:
-        if not ensure_session_exists(session_id):
+        user_id = session["user_id"]
+        if not ensure_session_exists(session_id, user_id):
             return jsonify({"error": "Session not found"}), 404
 
         data = request.get_json()
@@ -477,8 +707,13 @@ def edit_message(session_id, message_id):
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT role FROM chat_messages WHERE id = ? AND session_id = ?",
-            (message_id, session_id)
+            """
+            SELECT m.role
+            FROM chat_messages m
+            INNER JOIN chat_sessions s ON s.id = m.session_id
+            WHERE m.id = ? AND m.session_id = ? AND s.user_id = ?
+            """,
+            (message_id, session_id, user_id)
         )
 
         result = cursor.fetchone()
@@ -500,14 +735,14 @@ def edit_message(session_id, message_id):
         cursor.execute("""
             UPDATE chat_sessions
             SET updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        """, (session_id,))
+            WHERE id = ? AND user_id = ?
+        """, (session_id, user_id))
 
         conn.commit()
         conn.close()
 
         # Fix 2 + 3 + 4 in edit_message route as well
-        history_text = get_chat_context(session_id)
+        history_text = get_chat_context(session_id, user_id)
         if history_text:
             full_prompt = f"""Previous conversation:\n{history_text}\n\nCurrent question: {new_message}\n\nProvide a complete legal analysis following the structured 6-section format."""
         else:
@@ -526,7 +761,7 @@ def edit_message(session_id, message_id):
                 app.logger.error(f"Agent error in edit_message: {agent_err}")
                 ai_response = _fallback_legal_response(new_message)
 
-        save_message(session_id, "assistant", ai_response)
+        save_message(session_id, "assistant", ai_response, user_id)
 
         return jsonify({"response": ai_response, "status": "success"})
 

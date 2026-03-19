@@ -1,0 +1,368 @@
+:root {
+    --bg-deep: #020b18;
+    --bg-mid: #041428;
+    --bg-accent: #062040;
+    --primary: #1a6eb5;
+    --primary-dim: #0f4a7a;
+    --ice: #4fc3f7;
+    --cyan: #7dd4fc;
+    --hotspot: #a8e6ff;
+    --gold: #c9a84c;
+    --glass: rgba(4, 20, 40, 0.66);
+    --glass-border: rgba(74, 158, 220, 0.32);
+    --text: #e2f4ff;
+    --text-muted: #7ea7c4;
+    --danger: #ff9b9b;
+    --font-ui: 'Anton', system-ui, sans-serif;
+    --font-brand: 'Anton', sans-serif;
+    --font-answer: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-ui);
+    color: var(--text);
+    overflow: hidden;
+    background: radial-gradient(1200px 600px at 20% -20%, rgba(26, 110, 181, 0.18), transparent 62%),
+        radial-gradient(860px 500px at 100% 120%, rgba(201, 168, 76, 0.16), transparent 60%),
+        linear-gradient(140deg, var(--bg-deep), var(--bg-mid) 58%, var(--bg-accent));
+}
+
+#authBgCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.auth-noise {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.08;
+    background-image: radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.2) 0.5px, transparent 0.8px);
+    background-size: 3px 3px;
+}
+
+.auth-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(70px);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.35;
+}
+
+.auth-orb-one {
+    width: 360px;
+    height: 360px;
+    top: -70px;
+    left: -90px;
+    background: rgba(26, 110, 181, 0.58);
+    animation: orbFloatA 8s ease-in-out infinite;
+}
+
+.auth-orb-two {
+    width: 300px;
+    height: 300px;
+    bottom: -90px;
+    right: -80px;
+    background: rgba(201, 168, 76, 0.42);
+    animation: orbFloatB 10s ease-in-out infinite;
+}
+
+.auth-stage {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    perspective: 1200px;
+}
+
+.auth-shell {
+    width: min(520px, 95vw);
+    border-radius: 22px;
+    border: 1px solid var(--glass-border);
+    background: linear-gradient(150deg, rgba(6, 27, 52, 0.8), rgba(5, 19, 39, 0.74));
+    backdrop-filter: blur(16px);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(168, 230, 255, 0.18);
+    padding: 1.45rem;
+    transform-style: preserve-3d;
+    transition: transform 180ms ease-out, box-shadow 250ms ease;
+    animation: cardReveal 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-shell::before {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: 21px;
+    border: 1px solid rgba(126, 186, 229, 0.18);
+    pointer-events: none;
+}
+
+.card-grid-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background-image: linear-gradient(to right, rgba(79, 195, 247, 0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(79, 195, 247, 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: radial-gradient(circle at 30% 20%, black 0%, rgba(0, 0, 0, 0.32) 70%, transparent 100%);
+    pointer-events: none;
+}
+
+.parallax-layer {
+    transition: transform 180ms ease-out;
+    will-change: transform;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1.05rem;
+}
+
+.brand-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    object-fit: cover;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 8px rgba(79, 195, 247, 0.35));
+}
+
+.brand-name {
+    font-family: var(--font-brand);
+    letter-spacing: 0.06em;
+    font-size: 1.02rem;
+    color: var(--hotspot);
+}
+
+.auth-tagline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(126, 186, 229, 0.2);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.71rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.95rem;
+    background: rgba(12, 41, 73, 0.35);
+}
+
+.auth-title {
+    margin: 0;
+    font-family: var(--font-brand);
+    font-size: clamp(1.55rem, 2.2vw, 2rem);
+    line-height: 1.2;
+    color: var(--text);
+}
+
+.auth-title .accent {
+    color: var(--gold);
+}
+
+.auth-subtitle {
+    margin: 0.6rem 0 1.22rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-size: 0.97rem;
+}
+
+.auth-form {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.auth-label {
+    color: var(--cyan);
+    font-size: 0.84rem;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+}
+
+.auth-input-wrap {
+    position: relative;
+}
+
+.auth-input {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(74, 158, 220, 0.35);
+    background: rgba(6, 22, 43, 0.84);
+    color: var(--text);
+    padding: 0.78rem 0.88rem;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.auth-input::placeholder {
+    color: rgba(126, 167, 196, 0.75);
+}
+
+.auth-input:focus {
+    border-color: var(--ice);
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.18), 0 10px 26px rgba(12, 52, 92, 0.35);
+    transform: translateY(-1px);
+}
+
+.auth-btn {
+    margin-top: 0.32rem;
+    border: 1px solid rgba(79, 195, 247, 0.45);
+    border-radius: 12px;
+    padding: 0.82rem 1rem;
+    font-size: 0.94rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #ecf9ff;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--primary), #1f5f98 58%, #245283);
+    box-shadow: 0 14px 34px rgba(26, 110, 181, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 22px 38px rgba(26, 110, 181, 0.48);
+}
+
+.auth-error {
+    border: 1px solid rgba(255, 155, 155, 0.35);
+    background: rgba(87, 20, 20, 0.32);
+    border-radius: 12px;
+    padding: 0.68rem 0.82rem;
+    color: var(--danger);
+    font-size: 0.89rem;
+    margin-bottom: 0.25rem;
+}
+
+.auth-success {
+    border: 1px solid rgba(135, 225, 170, 0.35);
+    background: rgba(20, 87, 53, 0.28);
+    border-radius: 12px;
+    padding: 0.68rem 0.82rem;
+    color: #b9ffd6;
+    font-size: 0.89rem;
+    margin-bottom: 0.25rem;
+}
+
+.auth-alt {
+    margin-top: 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.auth-alt a {
+    color: var(--hotspot);
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(168, 230, 255, 0.3);
+}
+
+.auth-alt a:hover {
+    border-bottom-color: var(--hotspot);
+}
+
+body.focus-mode .auth-orb-one {
+    opacity: 0.55;
+}
+
+body.focus-mode .auth-orb-two {
+    opacity: 0.52;
+}
+
+@keyframes orbFloatA {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(25px, 22px, 0);
+    }
+}
+
+@keyframes orbFloatB {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(-20px, -28px, 0);
+    }
+}
+
+@keyframes cardReveal {
+    from {
+        opacity: 0;
+        transform: perspective(1100px) rotateX(9deg) rotateY(-8deg) translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: perspective(1100px) rotateX(0deg) rotateY(0deg) translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        overflow-y: auto;
+    }
+
+    .auth-stage {
+        display: block;
+        padding: 1rem;
+    }
+
+    .auth-shell {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 16px;
+    }
+
+    .auth-shell::before,
+    .card-grid-overlay {
+        border-radius: 15px;
+    }
+
+    .auth-title {
+        font-size: 1.38rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-shell,
+    .parallax-layer,
+    .auth-orb {
+        animation: none !important;
+        transition: none !important;
+    }
+}

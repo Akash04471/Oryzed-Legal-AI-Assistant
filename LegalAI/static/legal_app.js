@@ -276,11 +276,43 @@
             overlay.classList.remove('active');
             btn.classList.remove('open');
             btn.setAttribute('aria-expanded', 'false');
+            sidebar.style.transform = '';
         }
         function toggle() { sidebar.classList.contains('open') ? close() : open(); }
 
         btn.addEventListener('click', toggle);
         overlay.addEventListener('click', close);
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) close();
+        });
+
+        if (!isTouch) {
+            sidebar.addEventListener('mousemove', e => {
+                if (!sidebar.classList.contains('open')) return;
+                const r = sidebar.getBoundingClientRect();
+                const x = ((e.clientX - r.left) / r.width - 0.5) * 6;
+                const y = ((e.clientY - r.top) / r.height - 0.5) * 6;
+                sidebar.style.transform = `translateX(0) rotateY(${x * 0.4}deg) rotateX(${-y * 0.25}deg)`;
+            }, { passive: true });
+
+            sidebar.addEventListener('mouseleave', () => {
+                if (sidebar.classList.contains('open')) sidebar.style.transform = 'translateX(0)';
+            });
+
+            sidebar.addEventListener('mouseover', e => {
+                const item = e.target.closest('.session-item, .btn-new-chat, .sidebar-user-panel');
+                if (!item) return;
+                item.style.transition = 'transform .25s cubic-bezier(.22,1,.36,1)';
+                item.style.transform = 'translateY(-1px) scale(1.01)';
+            });
+
+            sidebar.addEventListener('mouseout', e => {
+                const item = e.target.closest('.session-item, .btn-new-chat, .sidebar-user-panel');
+                if (!item) return;
+                item.style.transform = '';
+            });
+        }
+
         W.LegalAI = W.LegalAI || {};
         W.LegalAI.closeSidebar = close;
         W.LegalAI.openSidebar = open;
@@ -350,9 +382,23 @@
             catch { return ''; }
         }
 
+        async function apiFetch(url, options) {
+            const res = await fetch(url, options);
+            if (res.status === 401) {
+                W.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+            return res;
+        }
+
+        async function apiFetchJson(url, options) {
+            const res = await apiFetch(url, options);
+            return await res.json();
+        }
+
         async function loadSessions() {
             try {
-                const data = await (await fetch('/api/sessions')).json();
+                const data = await apiFetchJson('/api/sessions');
                 S.sessions = data.sessions || [];
                 renderSessions();
             } catch (e) { console.error(e); }
@@ -362,7 +408,7 @@
             const c = g('sidebarSessions'); if (!c) return;
             c.innerHTML = '';
             if (!S.sessions.length) {
-                c.innerHTML = '<div class="sessions-empty"><i class="fas fa-balance-scale"></i><p>No consultations yet</p></div>';
+                c.innerHTML = '<div class="sessions-empty"><i class="fas fa-balance-scale"></i><p>No research sessions yet</p></div>';
                 return;
             }
             S.sessions.forEach((s, i) => {
@@ -390,7 +436,7 @@
 
         async function newSession() {
             try {
-                const data = await (await fetch('/api/new_session', { method: 'POST' })).json();
+                const data = await apiFetchJson('/api/new_session', { method: 'POST' });
                 S.sessionId = data.session_id;
                 const ma = g('messagesArea'); if (ma) ma.innerHTML = '';
                 const es = g('emptyState'); if (es) es.style.display = '';
@@ -407,7 +453,7 @@
             renderSessions();
             if (W.LegalAI) W.LegalAI.closeSidebar();
             try {
-                const data = await (await fetch(`/api/chat/${id}`)).json();
+                const data = await apiFetchJson(`/api/chat/${id}`);
                 (data.history || []).forEach(m => appendMsg(m.role, m.content, false));
                 scrollBot(false);
             } catch (e) { console.error(e); }
@@ -416,7 +462,7 @@
         async function deleteSession(id, el) {
             el.style.cssText += 'transition:transform .4s ease,opacity .4s ease;transform:scale(0) rotate(360deg);opacity:0;';
             setTimeout(async () => {
-                try { await fetch(`/api/delete_session/${id}`, { method: 'DELETE' }); } catch (e) { }
+                try { await apiFetch(`/api/delete_session/${id}`, { method: 'DELETE' }); } catch (e) { }
                 if (id === S.sessionId) {
                     S.sessionId = null;
                     const ma = g('messagesArea'); if (ma) ma.innerHTML = '';
@@ -533,7 +579,7 @@
             appendMsg('user', text, true);
             const thinkBub = showThinking();
             try {
-                const res = await fetch(`/api/chat/${S.sessionId}/message`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
+                const res = await apiFetch(`/api/chat/${S.sessionId}/message`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
                 const data = await res.json();
                 hideThinking(thinkBub);
 

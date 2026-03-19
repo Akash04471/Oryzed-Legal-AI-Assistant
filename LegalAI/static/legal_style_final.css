@@ -31,8 +31,9 @@
     --t-fast: 0.18s;
     --t-base: 0.32s;
     --t-slow: 0.55s;
-    --font-ui: 'DM Sans', system-ui, sans-serif;
-    --font-brand: 'Cinzel Decorative', serif;
+    --font-ui: 'Anton', system-ui, sans-serif;
+    --font-brand: 'Anton', sans-serif;
+    --font-answer: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -136,6 +137,7 @@ html {
 
 body {
     font-family: var(--font-ui);
+    letter-spacing: 0.02em;
     background: var(--bg-deep);
     color: var(--text);
     overflow: hidden;
@@ -193,9 +195,21 @@ body {
     gap: 5px;
     cursor: pointer;
     padding: 0;
+    overflow: hidden;
     transition: background var(--t-fast) ease,
         border-color var(--t-fast) ease,
         box-shadow var(--t-fast) ease;
+}
+
+.hamburger-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: conic-gradient(from 120deg, transparent, rgba(79, 195, 247, 0.52), transparent 38%);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity var(--t-base) ease, transform var(--t-base) ease;
 }
 
 .hamburger-btn:hover {
@@ -204,7 +218,15 @@ body {
     box-shadow: 0 0 20px rgba(79, 195, 247, 0.2);
 }
 
+.hamburger-btn:hover::before,
+.hamburger-btn.open::before {
+    opacity: 0.85;
+    transform: scale(1);
+}
+
 .hb-line {
+    position: relative;
+    z-index: 1;
     display: block;
     width: 20px;
     height: 1.8px;
@@ -272,6 +294,7 @@ body {
 }
 
 .sidebar-inner {
+    position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -283,6 +306,14 @@ body {
     padding: 1.5rem 0.85rem 1rem;
     gap: 0.85rem;
     overflow: hidden;
+}
+
+.sidebar-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(300px 180px at 18% 2%, rgba(79, 195, 247, 0.14), transparent 70%);
 }
 
 .sidebar-header {
@@ -351,6 +382,53 @@ body {
     flex-direction: column;
     gap: 0.4rem;
     padding-right: 0.15rem;
+}
+
+.sidebar-user-panel {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.72rem;
+    border: 1px solid rgba(74, 158, 220, 0.24);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(26, 110, 181, 0.18), rgba(5, 29, 54, 0.84));
+    box-shadow: 0 8px 26px rgba(2, 11, 24, 0.52);
+}
+
+.sidebar-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-brand);
+    font-size: 0.98rem;
+    color: var(--hotspot);
+    border: 1px solid rgba(79, 195, 247, 0.38);
+    background: radial-gradient(circle at 30% 30%, rgba(79, 195, 247, 0.45), rgba(11, 39, 68, 0.85));
+}
+
+.sidebar-user-meta {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.08rem;
+}
+
+.sidebar-user-name {
+    font-size: 0.9rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-status {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .session-item {
@@ -1080,6 +1158,28 @@ body {
     letter-spacing: 0.05em;
 }
 
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.topbar-user {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-logout-form {
+    margin: 0;
+}
+
 .btn-top-new {
     width: 34px;
     height: 34px;
@@ -1097,6 +1197,25 @@ body {
 .btn-top-new:hover {
     background: rgba(26, 110, 181, 0.28);
     border-color: var(--ice);
+}
+
+.btn-top-logout {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(201, 168, 76, 0.12);
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    color: var(--gold);
+    font-size: 0.85rem;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background var(--t-fast), border-color var(--t-fast);
+}
+
+.btn-top-logout:hover {
+    background: rgba(201, 168, 76, 0.26);
+    border-color: rgba(236, 216, 162, 0.65);
 }
 
 /* Chat body */
@@ -1163,6 +1282,7 @@ body {
 }
 
 .empty-sub {
+    font-family: var(--font-answer);
     font-size: 0.92rem;
     color: var(--text-muted);
     max-width: 480px;
@@ -1178,6 +1298,7 @@ body {
 }
 
 .prompt-chip {
+    font-family: var(--font-answer);
     padding: 0.45rem 0.95rem;
     background: rgba(26, 110, 181, 0.1);
     border: 1px solid rgba(74, 158, 220, 0.18);
@@ -1299,6 +1420,7 @@ body {
 }
 
 .message-text {
+    font-family: var(--font-answer);
     padding: 0.85rem 1.1rem;
     border-radius: var(--radius-card);
     line-height: 1.7;
@@ -1319,17 +1441,24 @@ body {
     border-bottom-left-radius: 4px;
 }
 
+.ai-message .message-text,
+.ai-message .message-text * {
+    font-family: var(--font-answer);
+    letter-spacing: 0;
+}
+
 /* Markdown in AI responses */
 .ai-message .message-text h1,
 .ai-message .message-text h2 {
-    font-family: var(--font-brand);
+    font-family: var(--font-answer);
     color: var(--hotspot);
     margin: 1rem 0 0.4rem;
-    font-weight: 400;
+    font-weight: 600;
     font-size: 1rem;
 }
 
 .ai-message .message-text h3 {
+    font-family: var(--font-answer);
     color: var(--ice);
     margin: 0.7rem 0 0.3rem;
     font-size: 0.95rem;
@@ -1428,6 +1557,7 @@ body {
 }
 
 .thinking-text {
+    font-family: var(--font-answer);
     font-size: 0.8rem;
     color: var(--text-muted);
     font-style: italic;
@@ -1495,7 +1625,7 @@ body {
     border: none;
     outline: none;
     color: var(--text);
-    font-family: var(--font-ui);
+    font-family: var(--font-answer);
     font-size: 0.92rem;
     line-height: 1.55;
     resize: none;
@@ -1579,6 +1709,7 @@ body {
 }
 
 .input-disclaimer {
+    font-family: var(--font-answer);
     font-size: 0.7rem;
     color: var(--text-dim);
     text-align: center;

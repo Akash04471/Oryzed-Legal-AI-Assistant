@@ -12,12 +12,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
 
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-        crossorigin="anonymous" />
+    <link rel="stylesheet" href="/static/vendor/fontawesome/all.min.css?v=20260319" />
 
     <!-- App Styles -->
     <link rel="stylesheet" href="/static/legal_style_final.css" />
@@ -27,8 +26,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" defer></script>
 
     <!-- Markdown Renderer + DOMPurify -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
+    <script src="/static/vendor/marked.min.js" defer></script>
+    <script src="/static/vendor/purify.min.js" defer></script>
 </head>
 
 <body>
@@ -130,7 +129,7 @@
     <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
 
     <!-- ═══ CHAT HISTORY SIDEBAR (overlay drawer) ═══ -->
-    <aside id="chatSidebar" class="chat-sidebar" aria-label="Consultation history" hidden>
+    <aside id="chatSidebar" class="chat-sidebar" aria-label="Research history" hidden>
         <div class="sidebar-inner">
             <div class="sidebar-header">
                 <video class="brand-logo-video" autoplay loop muted playsinline aria-hidden="true">
@@ -141,11 +140,19 @@
 
             <button id="btnNewConsultation" class="btn-new-chat">
                 <i class="fas fa-plus" id="newChatPlus"></i>
-                <span>New Consultation</span>
+                <span>New Research</span>
             </button>
 
-            <div class="session-list-label">Recent Consultations</div>
+            <div class="session-list-label">Recent Research</div>
             <div id="sidebarSessions" class="session-list" role="list"></div>
+
+            <div class="sidebar-user-panel" aria-label="Signed in user details">
+                <div class="sidebar-user-avatar">{{ (username[:1] if username else 'U')|upper }}</div>
+                <div class="sidebar-user-meta">
+                    <div class="sidebar-user-name">{{ username }}</div>
+                    <div class="sidebar-user-status">Research Mode Active</div>
+                </div>
+            </div>
         </div>
     </aside>
 
@@ -162,8 +169,8 @@
                 </video>
                 <span class="nav-name">Oryzed</span>
             </div>
-            <button id="btnNavEnterChat" class="btn-nav-cta" aria-label="Start consultation">
-                Start Consultation
+            <button id="btnNavEnterChat" class="btn-nav-cta" aria-label="Start research">
+                Start Research
             </button>
         </nav>
 
@@ -172,7 +179,7 @@
             <div class="hero-split">
                 <!-- Text side -->
                 <div class="hero-text">
-                    <div class="hero-badge reveal-item">Bharat's Advanced Legal AI · 2026</div>
+                    <div class="hero-badge reveal-item">Your 24/7 Legal Study Partner</div>
                     <h1 id="heroHeadline" class="hero-title reveal-item">
                         Intelligent Legal Research & Analysis
                     </h1>
@@ -192,11 +199,11 @@
                         <div class="stat-divider" aria-hidden="true"></div>
                         <div class="stat-item">
                             <span class="stat-num">∞</span>
-                            <span class="stat-label">Consultations</span>
+                            <span class="stat-label">Research Sessions</span>
                         </div>
                     </div>
-                    <button id="btnHeroEnterChat" class="btn-hero-cta reveal-item" aria-label="Begin consultation">
-                        Begin Consultation <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    <button id="btnHeroEnterChat" class="btn-hero-cta reveal-item" aria-label="Begin research">
+                        Begin Research <i class="fas fa-arrow-right" aria-hidden="true"></i>
                     </button>
                 </div>
 
@@ -243,7 +250,7 @@
                     <div class="feat-icon-wrap" aria-hidden="true">
                         <i class="fas fa-file-contract"></i>
                     </div>
-                    <h3>Legal Consultation</h3>
+                    <h3>Legal Research</h3>
                     <p>Expert guidance on civil, criminal, corporate, and constitutional matters with cited Supreme
                         Court judgments.</p>
                     <div class="feat-tag">llama-3.3-70b-versatile</div>
@@ -263,9 +270,9 @@
                     <h2 id="ctaTitle" class="cta-headline reveal-item">Ready to Begin?</h2>
                     <p class="cta-sub reveal-item">Experience AI-powered legal intelligence engineered for the modern
                         legal professional.</p>
-                    <button id="btnCtaEnterChat" class="btn-cta-main reveal-item" aria-label="Start consultation">
+                    <button id="btnCtaEnterChat" class="btn-cta-main reveal-item" aria-label="Start research">
                         <i class="fas fa-balance-scale" aria-hidden="true"></i>
-                        Start Your Consultation
+                        Begin Research
                     </button>
                 </div>
             </div>
@@ -292,9 +299,15 @@
                 <span class="topbar-name">Oryzed</span>
             </div>
             <div class="topbar-right">
-                <button id="btnNewConsultationTop" class="btn-top-new" aria-label="New consultation">
+                <span class="topbar-user">{{ username }}</span>
+                <button id="btnNewConsultationTop" class="btn-top-new" aria-label="New research">
                     <i class="fas fa-plus" aria-hidden="true"></i>
                 </button>
+                <form method="post" action="/logout" class="topbar-logout-form">
+                    <button type="submit" class="btn-top-logout" aria-label="Log out">
+                        <i class="fas fa-right-from-bracket" aria-hidden="true"></i>
+                    </button>
+                </form>
             </div>
         </header>
 
@@ -344,8 +357,7 @@
                         </button>
                     </div>
                 </div>
-                <p class="input-disclaimer">Oryzed provides legal information only — not a substitute for qualified
-                    legal advice.</p>
+                <p class="input-disclaimer">By using Oryzed, an LegalAI chatbot, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms and Conditions</a>. Oryzed provides legal information only - not a substitute for qualified legal advice.</p>
             </div>
         </div><!-- /.chat-body -->
 
