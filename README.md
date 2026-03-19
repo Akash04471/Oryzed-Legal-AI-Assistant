@@ -1,4 +1,4 @@
-# ⚖️ LegalAI – Cinematic AI Legal Assistant
+# ⚖️ LegalAI Assistant
 
 LegalAI is a **professional, AI-powered legal consultation platform** featuring a
 **cinematic UI**, **ChatGPT-style interactions**, and a **realistic gavel preloader animation**.
