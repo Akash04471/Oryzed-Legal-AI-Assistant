@@ -1,1 +1,13 @@
--r LegalAI/requirements.txt
+flask
+gunicorn
+python-dotenv
+agno
+groq
+duckduckgo-search
+ddgs
+requests
+beautifulsoup4
+flask-cors
+typing-extensions
+werkzeug
+
