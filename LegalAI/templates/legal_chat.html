@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Oryzed — Intelligent Legal Assistant</title>
+    <title>Legal AI — Intelligent Legal Assistant</title>
     <meta name="description"
-        content="Oryzed: AI-powered legal intelligence for Indian law. Structured, expert-level analysis." />
+        content="Legal AI: AI-powered legal intelligence for Indian law. Structured, expert-level analysis." />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
 
     <!-- Icons -->
@@ -36,7 +36,15 @@
     <canvas id="bgCanvas" aria-hidden="true"></canvas>
 
     <!-- ═══ ADVANCED LOADING SCREEN ═══ -->
-    <div id="loadingScreen" class="adv-loading-screen" role="status" aria-label="Loading Oryzed">
+    <div id="loadingScreen" class="adv-loading-screen" role="status" aria-label="Loading Legal AI">
+
+        <!-- Figma Branding Base -->
+        <div class="figma-radial-bg" aria-hidden="true"></div>
+        <div class="figma-glow-layer" aria-hidden="true">
+            <div class="figma-glow-blob"></div>
+            <div class="figma-glow-blob figma-glow-blob-2"></div>
+        </div>
+        <div class="figma-scanlines" aria-hidden="true"></div>
 
         <!-- Noise texture overlay (SVG filter) -->
         <svg class="adv-noise-texture" aria-hidden="true">
@@ -81,14 +89,13 @@
                 <div class="adv-corner adv-corner-br"></div>
                 <div class="adv-corner adv-corner-bl"></div>
 
-                <!-- Logo morph -->
+                <!-- Logo morph / Typographic Loader -->
                 <div class="adv-logo-section">
-                    <div class="adv-logo-glow" aria-hidden="true"></div>
-                    <img src="/static/Oryzed_Logo.png" alt="Oryzed Logo" id="loadingLogoImg" class="adv-logo-img">
+                    <div class="onto-loading-text">ORYZED</div>
                 </div>
 
                 <!-- Brand text -->
-                <div id="loadingBrandText" class="adv-brand-text">ORYZED</div>
+                <!-- Brand text removed per request -->
 
                 <!-- State indicator -->
                 <div class="adv-state-indicator">
@@ -115,14 +122,13 @@
         <div id="advAmbientParticles" class="adv-ambient-particles" aria-hidden="true"></div>
 
         <!-- Footer branding -->
-        <div class="adv-footer-brand">ORYZED PLATFORM v2.0</div>
+        <div class="adv-footer-brand">PLATFORM v2.0</div>
     </div>
 
     <!-- ═══ HAMBURGER (always fixed, always visible) ═══ -->
-    <button id="hamburgerBtn" class="hamburger-btn" aria-label="Toggle navigation" aria-expanded="false">
-        <span class="hb-line hb-top"></span>
-        <span class="hb-line hb-mid"></span>
-        <span class="hb-line hb-bot"></span>
+    <button id="hamburgerBtn" class="hamburger-btn" aria-label="Toggle navigation menu"
+        aria-controls="chatSidebar" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
     </button>
 
     <!-- ═══ SIDEBAR OVERLAY ═══ -->
@@ -132,10 +138,7 @@
     <aside id="chatSidebar" class="chat-sidebar" aria-label="Research history" hidden>
         <div class="sidebar-inner">
             <div class="sidebar-header">
-                <video class="brand-logo-video" autoplay loop muted playsinline aria-hidden="true">
-                    <source src="/static/Live_Oryzed.mp4" type="video/mp4">
-                </video>
-                <span class="sidebar-brand">Oryzed</span>
+                <img src="/static/Oryzed_Logo.png" class="sidebar-logo-img" alt="Legal AI Logo">
             </div>
 
             <button id="btnNewConsultation" class="btn-new-chat">
@@ -164,10 +167,17 @@
         <!-- Landing nav -->
         <nav class="land-nav" aria-label="Main navigation">
             <div class="nav-brand">
-                <video class="brand-logo-video" autoplay loop muted playsinline aria-hidden="true">
-                    <source src="/static/Live_Oryzed.mp4" type="video/mp4">
-                </video>
-                <span class="nav-name">Oryzed</span>
+                <img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo">
+            </div>
+            <div class="nav-links exquisite-nav">
+                <a href="#heroSection" class="nav-link">Home</a>
+                <a href="#featuresSection" class="nav-link">Capabilities</a>
+                <a href="/terms" class="nav-link">Terms</a>
+                {% if not username %}
+                <a href="/login" class="nav-link">Login</a>
+                {% else %}
+                <a href="/profile" class="nav-link">Profile</a>
+                {% endif %}
             </div>
             <button id="btnNavEnterChat" class="btn-nav-cta" aria-label="Start research">
                 Start Research
@@ -203,11 +213,19 @@
                         </div>
                     </div>
                     <button id="btnHeroEnterChat" class="btn-hero-cta reveal-item" aria-label="Begin research">
-                        Begin Research <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        Begin Research 
+                        <svg class="btn-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; margin-left:8px; vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </button>
                 </div>
 
                 <div class="hero-canvas-wrap custom-hero-wrap" aria-hidden="true">
+                    <!-- Figma Branding Base -->
+                    <div class="figma-radial-bg" aria-hidden="true"></div>
+                    <div class="figma-glow-layer" aria-hidden="true">
+                        <div class="figma-glow-blob"></div>
+                    </div>
+                    <div class="figma-scanlines" aria-hidden="true"></div>
+
                     <video id="ljHeroVideo" class="lj-hero-video justice-lady-landing-video" autoplay loop muted playsinline>
                         <source src="/static/Live_Oryzed.mp4" type="video/mp4">
                     </video>
@@ -230,30 +248,27 @@
             <div class="features-grid">
                 <div class="feature-card reveal-item" data-delay="0">
                     <div class="feat-icon-wrap" aria-hidden="true">
-                        <i class="fas fa-search"></i>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </div>
-                    <h3>Legal Research</h3>
-                    <p>Instant synthesis of case law, statutes, and precedents from Indian Kanoon, SCC Online, and
-                        authoritative legal sources.</p>
-                    <div class="feat-tag">DuckDuckGo · LawBhoomi</div>
+                    <h3>Legal Research Excellence</h3>
+                    <p>Comprehensive synthesis of case law, statutes, and precedents from authoritative Indian legal databases including Indian Kanoon and LawBhoomi.</p>
+                    <div class="feat-tag">Supreme Court · High Courts</div>
                 </div>
                 <div class="feature-card reveal-item feat-highlight" data-delay="1">
                     <div class="feat-icon-wrap" aria-hidden="true">
-                        <i class="fas fa-balance-scale"></i>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M5 13a7 7 0 1 1 14 0"></path><line x1="2" y1="21" x2="22" y2="21"></line></svg>
                     </div>
-                    <h3>Case Analysis</h3>
-                    <p>Structured 6-section format: Facts → Legal Issues → Analysis → Applicable Laws → Case Law →
-                        Conclusion.</p>
-                    <div class="feat-tag">IPC · CrPC · Constitution</div>
+                    <h3>Advanced Case Analysis</h3>
+                    <p>Systematic methodology for dissecting facts, framing legal issues, and analyzing judicial reasoning to provide expert-level insights.</p>
+                    <div class="feat-tag">Ratio Decidendi · Precedents</div>
                 </div>
                 <div class="feature-card reveal-item" data-delay="2">
                     <div class="feat-icon-wrap" aria-hidden="true">
-                        <i class="fas fa-file-contract"></i>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                     </div>
-                    <h3>Legal Research</h3>
-                    <p>Expert guidance on civil, criminal, corporate, and constitutional matters with cited Supreme
-                        Court judgments.</p>
-                    <div class="feat-tag">llama-3.3-70b-versatile</div>
+                    <h3>Jurisprudential Intelligence</h3>
+                    <p>Specialized guidance across civil, criminal, and constitutional domains, bolstered by real-time citations of transformative judgments.</p>
+                    <div class="feat-tag">Constitution · Statutes</div>
                 </div>
             </div>
         </section>
@@ -268,10 +283,22 @@
                 </div>
                 <div class="cta-text">
                     <h2 id="ctaTitle" class="cta-headline reveal-item">Ready to Begin?</h2>
-                    <p class="cta-sub reveal-item">Experience AI-powered legal intelligence engineered for the modern
+                    <p class="cta-sub reveal-item" style="margin-bottom: 1rem; line-height:1.7;">Experience AI-powered legal intelligence engineered for the modern
                         legal professional.</p>
-                    <button id="btnCtaEnterChat" class="btn-cta-main reveal-item" aria-label="Start research">
-                        <i class="fas fa-balance-scale" aria-hidden="true"></i>
+                    
+                    <div class="cta-trust-badges reveal-item" style="display: flex; gap: 1.2rem; justify-content: center; margin-bottom: 2.5rem; flex-wrap: wrap;">
+                        <span class="trust-badge" style="background: rgba(79, 195, 247, 0.08); border: 1px solid rgba(79, 195, 247, 0.2); padding: 0.6rem 1.2rem; border-radius: 30px; font-size: 0.85rem; color: #4fc3f7; display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); letter-spacing: 0.02em; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" onmouseover="this.style.background='rgba(79, 195, 247, 0.15)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(79, 195, 247, 0.08)'; this.style.transform='translateY(0)';">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            Bank-Grade Security
+                        </span>
+                        <span class="trust-badge" style="background: rgba(79, 195, 247, 0.08); border: 1px solid rgba(79, 195, 247, 0.2); padding: 0.6rem 1.2rem; border-radius: 30px; font-size: 0.85rem; color: #4fc3f7; display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); letter-spacing: 0.02em; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" onmouseover="this.style.background='rgba(79, 195, 247, 0.15)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(79, 195, 247, 0.08)'; this.style.transform='translateY(0)';">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            Join 10,000+ Professionals
+                        </span>
+                    </div>
+
+                    <button id="btnCtaEnterChat" class="btn-cta-main reveal-item" style="box-shadow: 0 8px 32px rgba(79, 195, 247, 0.3); transition: all 0.3s ease; transform-origin: center;" onmouseover="this.style.boxShadow='0 12px 40px rgba(79, 195, 247, 0.5)'; this.style.transform='scale(1.05)';" onmouseout="this.style.boxShadow='0 8px 32px rgba(79, 195, 247, 0.3)'; this.style.transform='scale(1)';" aria-label="Start research">
+                        <svg class="btn-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; margin-right:8px; vertical-align:middle; pointer-events: none;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                         Begin Research
                     </button>
                 </div>
@@ -284,6 +311,12 @@
      CHAT SPA
      ═══════════════════════════════════════════════════════════ -->
     <div id="chatApp" class="chat-app" aria-hidden="true">
+        <!-- Figma Branding Base for Chat -->
+        <div class="figma-radial-bg" aria-hidden="true"></div>
+        <div class="figma-glow-layer" aria-hidden="true">
+            <div class="figma-glow-blob" style="opacity: 0.4;"></div>
+        </div>
+        <div class="figma-scanlines" aria-hidden="true" style="opacity: 0.15;"></div>
 
         <!-- Lady Justice ghost background -->
         <video id="ljChatVideo" class="chat-lj-video" autoplay loop muted playsinline aria-hidden="true">
@@ -292,20 +325,20 @@
 
         <!-- Chat topbar -->
         <header class="chat-topbar" role="banner">
-            <div class="topbar-brand">
-                <video class="brand-logo-video" autoplay loop muted playsinline aria-hidden="true">
-                    <source src="/static/Live_Oryzed.mp4" type="video/mp4">
-                </video>
-                <span class="topbar-name">Oryzed</span>
-            </div>
+            <a href="/" class="topbar-brand" aria-label="Home">
+                <img src="/static/Oryzed_Logo.png" class="topbar-logo-img" alt="Legal AI Logo">
+            </a>
             <div class="topbar-right">
-                <span class="topbar-user">{{ username }}</span>
+                <a href="/profile" class="topbar-user-pill" style="text-decoration: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span class="topbar-user-name">{{ username }}</span>
+                </a>
                 <button id="btnNewConsultationTop" class="btn-top-new" aria-label="New research">
-                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
-                <form method="post" action="/logout" class="topbar-logout-form">
-                    <button type="submit" class="btn-top-logout" aria-label="Log out">
-                        <i class="fas fa-right-from-bracket" aria-hidden="true"></i>
+                <form action="{{ url_for('logout') }}" method="POST" class="topbar-logout-form">
+                    <button type="submit" class="btn-top-logout" aria-label="Logout">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     </button>
                 </form>
             </div>
@@ -340,7 +373,8 @@
             <!-- Input section -->
             <div class="input-section">
                 <div id="newMsgPill" class="new-msg-pill" role="status" hidden>
-                    <i class="fas fa-chevron-down" aria-hidden="true"></i> New message
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    New message
                 </div>
                 <div class="input-bar" id="inputBar">
                     <textarea id="cosmicTextarea" class="chat-input" placeholder="Ask your legal question…" rows="1"
@@ -350,11 +384,11 @@
                             <span id="charCount">0</span>/4000
                         </span>
                         <button id="btnSend" class="btn-send" aria-label="Send message" disabled>
-                            <i class="fas fa-paper-plane" id="sendIcon" aria-hidden="true"></i>
-                        </button>
+                        <svg id="sendIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
                     </div>
                 </div>
-                <p class="input-disclaimer">By using Oryzed, an LegalAI chatbot, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms and Conditions</a>. Oryzed provides legal information only - not a substitute for qualified legal advice.</p>
+                <p class="input-disclaimer">By using this LegalAI chatbot, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms and Conditions</a>. This system provides legal information only - not a substitute for qualified legal advice.</p>
             </div>
         </div><!-- /.chat-body -->
 

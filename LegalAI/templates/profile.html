@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal AI - User Profile</title>
+    <meta name="description" content="Manage your Legal AI account details and preferences.">
+    
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
+    <!-- Fonts matching the app -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/legal_style_final.css" />
+    <link rel="stylesheet" href="/static/terms.css"> <!-- Reusing exquisite aesthetic -->
+    
+    <style>
+        :root {
+            --font-ui: "Inter", sans-serif;
+            --font-brand: "Inter", sans-serif;
+        }
+        .terms-btn.btn-danger {
+            background: linear-gradient(135deg, #e53935, #b71c1c);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="termsCanvas" aria-hidden="true"></canvas>
+    <div class="terms-noise" aria-hidden="true"></div>
+
+    <!-- ═══ FIXED HAMBURGER VISUAL ANCHOR ═══ -->
+    <a href="/" id="hamburgerBtn" class="hamburger-btn" aria-label="Return to Research"
+        style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </a>
+
+    <!-- ═══ EXQUISITE FLOATING NAVBAR ═══ -->
+    <nav class="land-nav" aria-label="Main navigation">
+        <div class="nav-brand">
+            <a href="/"><img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo" style="height: 48px; width: auto; object-fit: contain; mix-blend-mode: screen;"></a>
+        </div>
+        <div class="nav-links exquisite-nav">
+            <a href="/#heroSection" class="nav-link">Home</a>
+            <a href="/#featuresSection" class="nav-link">Capabilities</a>
+            <a href="/terms" class="nav-link">Terms</a>
+            <a href="/profile" class="nav-link" style="color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3);">Profile</a>
+        </div>
+        <a href="/" class="btn-nav-cta" aria-label="Start research" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--cyan, #4fc3f7), #007bb5); color: #fff; padding: 0.6rem 1.4rem; border-radius: 30px; font-weight: 600; transition: all 0.3s ease;">
+            Start Research
+        </a>
+    </nav>
+
+    <main class="terms-wrap">
+        <section class="terms-hero reveal-item">
+            <div class="hero-kicker">Account</div>
+            <h1>User Profile</h1>
+            <p class="hero-sub">Manage your Legal AI access and details.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Account Details</h2>
+            <div style="font-family: var(--font-ui); color: var(--text-muted, #b4cbe0);">
+                <p><strong>Username:</strong> <span style="color: #fff;">{{ user.username }}</span></p>
+                <p><strong>Email Address:</strong> <span style="color: #fff;">{{ user.email }}</span></p>
+                <p><strong>User ID:</strong> <span style="color: #fff;">{{ user.id }}</span></p>
+                <p><strong>Member Since:</strong> <span style="color: #fff;">{{ user.created_at_formatted }}</span></p>
+            </div>
+        </section>
+        
+        <section class="terms-card reveal-item">
+            <h2>Actions</h2>
+            <p style="color: var(--text-muted, #b4cbe0);">Need to sign out of your account on this device?</p>
+            <form action="{{ url_for('logout') }}" method="POST" style="margin-top: 15px;">
+                <button type="submit" class="terms-btn btn-danger" style="cursor: pointer;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Sign Out
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        // Simple canvas animation for the background
+        const canvas = document.getElementById('termsCanvas'), ctx = canvas.getContext('2d');
+        let points = [];
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        for(let i=0; i<40; i++) {
+            points.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                r: Math.random() * 1.5 + 0.5
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(127, 214, 255, 0.4)';
+            
+            points.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fill();
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+        
+        // Reveal elements on load
+        setTimeout(() => {
+            const els = document.querySelectorAll('.reveal-item');
+            els.forEach((el, index) => {
+                setTimeout(() => {
+                    el.classList.add('in');
+                }, index * 100);
+            });
+        }, 100);
+    </script>
+</body>
+</html>

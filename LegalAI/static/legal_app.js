@@ -1,4 +1,4 @@
-/* ═══ ORYZED LEGAL AI — legal_app.js (video edition) ═══ */
+/* ═══ LEGAL AI — legal_app.js (video edition) ═══ */
 (function (W) {
     'use strict';
 
@@ -408,7 +408,7 @@
             const c = g('sidebarSessions'); if (!c) return;
             c.innerHTML = '';
             if (!S.sessions.length) {
-                c.innerHTML = '<div class="sessions-empty"><i class="fas fa-balance-scale"></i><p>No research sessions yet</p></div>';
+                c.innerHTML = '<div class="sessions-empty"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;opacity:0.5;"><path d="M3 6l3 12h12l3-12H3z"></path><path d="M12 3v3"></path><path d="M12 18v3"></path></svg><p>No research sessions yet</p></div>';
                 return;
             }
             S.sessions.forEach((s, i) => {
@@ -423,12 +423,12 @@
             const div = document.createElement('div');
             div.className = 'session-item' + (s.id === S.sessionId ? ' active' : '');
             div.setAttribute('role', 'listitem');
-            div.innerHTML = `<div class="session-icon"><i class="fas fa-balance-scale"></i></div>
+            div.innerHTML = `<div class="session-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 12h12l3-12H3z"></path><path d="M12 3v3"></path></svg></div>
             <div class="session-details">
                 <div class="session-title">${esc(s.title)}</div>
                 <div class="session-meta">${fmtDate(s.updated_at)}</div>
             </div>
-            <button class="session-delete icon-btn" aria-label="Delete"><i class="fas fa-times"></i></button>`;
+            <button class="session-delete icon-btn" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
             div.addEventListener('click', e => { if (!e.target.closest('.session-delete')) switchSession(s.id); });
             div.querySelector('.session-delete').addEventListener('click', e => { e.stopPropagation(); deleteSession(s.id, div); });
             return div;
@@ -529,7 +529,7 @@
                     <circle cx="30" cy="28" r="2" fill="#4fc3f7"/>
                     <circle cx="6"  cy="28" r="2" fill="#4fc3f7"/>
                </svg></div>
-               <div class="msg-content"><div class="msg-role-label">Oryzed AI</div><div class="message-text ai-text"></div></div>`
+               <div class="msg-content"><div class="msg-role-label">Legal AI</div><div class="message-text ai-text"></div></div>`
                 : `<div class="msg-content"><div class="msg-role-label">You</div><div class="message-text">${esc(content)}</div></div>`;
 
             const ma = g('messagesArea'); if (ma) ma.appendChild(bub);

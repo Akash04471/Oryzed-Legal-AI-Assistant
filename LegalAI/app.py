@@ -842,6 +842,45 @@ def edit_message(session_id, message_id):
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 # ------------------------------------------------------
+#                  PROFILE ROUTE
+# ------------------------------------------------------
+
+@app.route('/profile')
+def profile():
+    if "user_id" not in session:
+        return redirect(url_for('login'))
+    
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(adapt_sql("SELECT id, username, email, created_at FROM users WHERE id = ?"), (session["user_id"],))
+    user = c.fetchone()
+    conn.close()
+
+    if not user:
+        session.clear()
+        return redirect(url_for('login'))
+
+    created_at_val = user[3]
+    created_at_formatted = "Unknown"
+    
+    if isinstance(created_at_val, str):
+        try:
+            created_at_formatted = datetime.strptime(created_at_val[:19], '%Y-%m-%d %H:%M:%S').strftime('%B %d, %Y')
+        except:
+            # Fallback if the format varies
+            created_at_formatted = created_at_val.split()[0] if created_at_val else "Unknown"
+    elif hasattr(created_at_val, 'strftime'):
+        created_at_formatted = created_at_val.strftime('%B %d, %Y')
+
+    user_dict = {
+        "id": user[0],
+        "username": user[1],
+        "email": user[2] if user[2] else "Not provided",
+        "created_at_formatted": created_at_formatted
+    }
+    return render_template('profile.html', user=user_dict, username=user_dict["username"])
+
+# ------------------------------------------------------
 #                  RUN APP
 # ------------------------------------------------------
 
@@ -850,4 +889,4 @@ init_db()
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=False)
+    app.run(host="0.0.0.0", port=8080, debug=True)

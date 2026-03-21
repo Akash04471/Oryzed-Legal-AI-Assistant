@@ -13,8 +13,8 @@
     --text: #e2f4ff;
     --text-muted: #7ea7c4;
     --danger: #ff9b9b;
-    --font-ui: 'Anton', system-ui, sans-serif;
-    --font-brand: 'Anton', sans-serif;
+    --font-ui: 'Inter', system-ui, sans-serif;
+    --font-brand: 'Inter', sans-serif;
     --font-answer: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 }

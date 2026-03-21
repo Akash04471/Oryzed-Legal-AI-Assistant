@@ -1404,4 +1404,27 @@
     opacity: 0;
     animation: advTextFadeIn 1s ease 1.6s forwards;
 }
-
+
+/* ── Typographic "ONTO" Loader ───────────────────────────── */
+.onto-loading-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: clamp(4rem, 10vw, 8rem);
+    letter-spacing: 0.05em;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.15);
+    background: linear-gradient(to top, #ffffff 50%, transparent 50%);
+    background-size: 100% 200%;
+    background-position: top;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: ontoFill 3s ease-in-out forwards;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+@keyframes ontoFill {
+    0% { background-position: top; -webkit-text-stroke-color: rgba(255,255,255,0.15); filter: drop-shadow(0 0 0 transparent); }
+    100% { background-position: bottom; -webkit-text-stroke-color: transparent; filter: drop-shadow(0 0 25px rgba(255,255,255,0.4)); }
+}

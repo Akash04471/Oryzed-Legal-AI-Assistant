@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   ORYZED LEGAL AI — DEEP OCEAN BLUE UNIVERSE
+   LEGAL AI — DEEP OCEAN BLUE UNIVERSE
    legal_style_final.css v2  ·  2026
    ═══════════════════════════════════════════════════════════ */
 
@@ -31,9 +31,9 @@
     --t-fast: 0.18s;
     --t-base: 0.32s;
     --t-slow: 0.55s;
-    --font-ui: 'Anton', system-ui, sans-serif;
-    --font-brand: 'Anton', sans-serif;
-    --font-home: 'Playfair Display', Georgia, serif;
+    --font-ui: 'Inter', system-ui, sans-serif;
+    --font-brand: 'Inter', sans-serif;
+    --font-home: 'Inter', system-ui, serif;
     --font-answer: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 }
@@ -83,6 +83,8 @@
     border-radius: 0;
     border: none;
     outline: none;
+    transform: scale(0.85); /* Reduced size for better balance */
+    transform-origin: center;
 }
 
 /* 3. CTA emblem video */
@@ -101,13 +103,22 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1.15); /* Watermark crop */
+    transform-origin: top center;
     width: min(680px, 96vw);
     height: auto;
     opacity: 0.07;
     pointer-events: none;
     z-index: 0;
     mix-blend-mode: screen;
+}
+
+/* 5. Generic Watermark Crop for all background videos */
+.adv-bg-video, 
+.lj-hero-video, 
+.lj-cta-video {
+    transform: scale(1.18);
+    transform-origin: top center;
 }
 
 @keyframes ljGlowPulse {
@@ -164,27 +175,100 @@ body {
 #bgCanvas {
     position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: 100; /* Floating over the UI for the 'constellation' effect */
     width: 100%;
     height: 100%;
     pointer-events: none;
+    opacity: 0.6; /* Subtle floating effect */
 }
 
 /* ─────────────────────────────────────────────
-   LOADING SCREEN (styles moved to legal_animations.css)
+   FIGMA BRANDING ELEMENTS (NEW PHASE 4)
    ───────────────────────────────────────────── */
-/* Old styles removed — see .adv-loading-screen in legal_animations.css */
+
+/* Radial background matching Figma logo context */
+.figma-radial-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #1a2540 0%, #0a0e1a 50%, #000000 100%);
+    z-index: -1;
+}
+
+/* Animated blue pulse glows */
+.figma-glow-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.figma-glow-blob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: rgba(0, 163, 255, 0.15);
+    border-radius: 50%;
+    filter: blur(120px);
+    animation: figmaPulse 6s ease-in-out infinite;
+}
+
+.figma-glow-blob-2 {
+    width: 400px;
+    height: 400px;
+    background: rgba(0, 119, 255, 0.12);
+    animation-delay: 1.5s;
+    filter: blur(90px);
+}
+
+@keyframes figmaPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
+}
+
+/* Scanline effect */
+.figma-scanlines {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        transparent 50%,
+        rgba(0, 0, 0, 0.15) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.3;
+}
+
+/* Apply blend mode to all logo instances */
+.topbar-logo-img,
+.land-logo-img,
+.sidebar-logo-img,
+.adv-logo-img {
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 12px rgba(0, 163, 255, 0.5));
+    transition: transform 0.3s var(--ease-spring), filter 0.3s ease;
+}
+
+.topbar-logo-img:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 20px rgba(0, 163, 255, 0.8));
+}
 
 /* ─────────────────────────────────────────────
    HAMBURGER (always fixed, always visible)
    ───────────────────────────────────────────── */
 .hamburger-btn {
     position: fixed;
-    top: 18px;
-    left: 18px;
+    top: 10px;
+    left: 16px;
     z-index: 8000;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     background: rgba(4, 20, 40, 0.8);
     backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
@@ -693,7 +777,7 @@ body {
     isolation: isolate;
 }
 
-.oryzed-hero-logo-video {
+.hero-logo-video {
     width: 100%;
     height: auto;
     display: block;
@@ -1166,11 +1250,29 @@ body {
     font-size: 1.1rem;
 }
 
-.topbar-name {
-    font-family: var(--font-brand);
-    font-size: 0.95rem;
-    color: var(--hotspot);
-    letter-spacing: 0.05em;
+.topbar-logo-img {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px rgba(79, 195, 247, 0.5));
+    transition: transform var(--t-fast) ease;
+}
+
+.topbar-logo-img:hover {
+    transform: scale(1.04);
+}
+
+.sidebar-logo-img {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+}
+
+.land-logo-img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
 }
 
 .topbar-right {
@@ -1179,13 +1281,47 @@ body {
     gap: 0.55rem;
 }
 
-.topbar-user {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.05em;
+.topbar-user-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.85rem;
+    background: rgba(26, 110, 181, 0.08);
+    border: 1px solid rgba(74, 158, 220, 0.18);
+    border-radius: 50px;
+    margin-right: 0.4rem;
+    transition: background var(--t-fast), border-color var(--t-fast);
+}
+
+.topbar-user-pill:hover {
+    background: rgba(26, 110, 181, 0.15);
+    border-color: rgba(79, 195, 247, 0.35);
+}
+
+.topbar-user-pill i {
+    color: var(--ice);
+    font-size: 1.05rem;
+}
+
+.session-title {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-user-name {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text-muted);
-    max-width: 140px;
+    color: var(--text);
+    max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1196,41 +1332,46 @@ body {
 }
 
 .btn-top-new {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: rgba(26, 110, 181, 0.14);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(26, 110, 181, 0.12);
     border: 1px solid rgba(74, 158, 220, 0.2);
     color: var(--ice);
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     display: grid;
     place-items: center;
     cursor: pointer;
-    transition: background var(--t-fast), border-color var(--t-fast);
+    transition: all var(--t-fast) var(--ease-out);
 }
 
 .btn-top-new:hover {
-    background: rgba(26, 110, 181, 0.28);
+    background: rgba(26, 110, 181, 0.25);
     border-color: var(--ice);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.2);
 }
 
 .btn-top-logout {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: rgba(201, 168, 76, 0.12);
-    border: 1px solid rgba(201, 168, 76, 0.35);
-    color: var(--gold);
-    font-size: 0.85rem;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(239, 83, 80, 0.08);
+    border: 1px solid rgba(239, 83, 80, 0.25);
+    color: #ef5350;
+    font-size: 0.95rem;
     display: grid;
     place-items: center;
     cursor: pointer;
-    transition: background var(--t-fast), border-color var(--t-fast);
+    text-decoration: none;
+    transition: all var(--t-fast) var(--ease-out);
 }
 
 .btn-top-logout:hover {
-    background: rgba(201, 168, 76, 0.26);
-    border-color: rgba(236, 216, 162, 0.65);
+    background: rgba(239, 83, 80, 0.2);
+    border-color: #ef5350;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 83, 80, 0.25);
 }
 
 /* Chat body */
@@ -1958,4 +2099,105 @@ body {
         opacity: 1;
         transform: none;
     }
+}
+
+/* ─────────────────────────────────────────────
+   PHASE 6: RECTANGULAR HERO VIDEO & NAV LINKS
+   ───────────────────────────────────────────── */
+.custom-hero-wrap {
+    width: 600px !important;
+    height: 380px !important;
+    max-width: 90vw;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(79, 195, 247, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(79, 195, 247, 0.1);
+    margin: 2rem auto;
+    clip-path: none !important;
+    transform: none !important;
+    background: #0a0e1a; /* Base dark in case video is slow */
+}
+
+.lj-hero-video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+.hero-video-edge-fade, .hero-canvas-glow {
+    /* Mute default glows inside the constrained rectangle to preserve crisp borders */
+    display: none !important;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-right: -40px; /* Offset the space between CTA and links */
+}
+
+.nav-link {
+    font-family: var(--font-ui);
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--ice);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .custom-hero-wrap {
+        height: 250px !important;
+        margin: 1rem auto;
+    }
+    .nav-links {
+        display: none; /* Hide on very small screens or use a menu */
+    }
+}
+
+/* Ensure buttons are properly clickable despite inline SVGs */
+.btn-top-new svg, .btn-top-logout svg, .btn-send svg, .btn-hero-cta svg, .hamburger-btn svg {
+    pointer-events: none;
+}
+
+/* Phase 7: Exquisite Navigation & visibility fixes */
+.exquisite-nav {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10, 14, 26, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.8rem 2.8rem;
+    border-radius: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    margin: 0;
+    z-index: 50;
+}
+
+.exquisite-nav .nav-link {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.02em;
+}
+.exquisite-nav .nav-link:hover {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Make hamburger explicitly visible on dark backgrounds */
+.hamburger-btn svg {
+    stroke: var(--ice, #fff) !important;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
 }
