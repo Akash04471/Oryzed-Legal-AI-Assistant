@@ -27,8 +27,46 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here")
 
 # Database setup
+import tempfile
+try:
+    import psycopg2
+    from psycopg2 import extras
+    HAS_POSTGRES = True
+except ImportError:
+    HAS_POSTGRES = False
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "legal_chat.db")
+# On Vercel, the filesystem is read-only except /tmp.
+if os.environ.get("VERCEL"):
+    DB_PATH = os.path.join(tempfile.gettempdir(), "legal_chat.db")
+else:
+    DB_PATH = os.path.join(BASE_DIR, "legal_chat.db")
+
+# Detect DB type
+DATABASE_URL = os.environ.get("DATABASE_URL")
+IS_POSTGRES = HAS_POSTGRES and DATABASE_URL is not None
+
+def get_db_connection():
+    """
+    Returns a database connection.
+    Uses Postgres if DATABASE_URL is set, otherwise uses local SQLite.
+    """
+    if IS_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = True
+        return conn
+    
+    return sqlite3.connect(DB_PATH)
+
+def adapt_sql(sql: str) -> str:
+    """Adapts SQLite syntax to Postgres if needed."""
+    if IS_POSTGRES:
+        # Replace ? with %s for Postgres placeholders
+        sql = sql.replace("?", "%s")
+        # Handle SQLite AUTOINCREMENT -> Postgres SERIAL
+        sql = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+        # Handle any other major differences if they arise
+    return sql
 
 
 def _get_llm_api_key() -> str:
@@ -111,12 +149,12 @@ Please retry after fixing server API credentials. If you share your legal questi
 def init_db():
     """Initialize the database with required tables."""
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         app.logger.info(f"Initializing database at: {DB_PATH}")
 
-        cursor.execute("""
+        cursor.execute(adapt_sql("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
@@ -124,18 +162,18 @@ def init_db():
                 password_hash TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """))
 
-        cursor.execute("""
+        cursor.execute(adapt_sql("""
             CREATE TABLE IF NOT EXISTS chat_sessions (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """))
 
-        cursor.execute("""
+        cursor.execute(adapt_sql("""
             CREATE TABLE IF NOT EXISTS chat_messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 session_id TEXT NOT NULL,
@@ -144,23 +182,33 @@ def init_db():
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
             )
-        """)
+        """))
 
         # Backward-compatible migration for existing databases.
-        cursor.execute("PRAGMA table_info(users)")
-        user_columns = [column[1] for column in cursor.fetchall()]
+        if not IS_POSTGRES:
+            cursor.execute("PRAGMA table_info(users)")
+            user_columns = [column[1] for column in cursor.fetchall()]
+        else:
+            cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'users'")
+            user_columns = [column[0] for column in cursor.fetchall()]
+        
         if "email" not in user_columns:
-            cursor.execute("ALTER TABLE users ADD COLUMN email TEXT")
+            cursor.execute(adapt_sql("ALTER TABLE users ADD COLUMN email TEXT"))
 
-        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+        cursor.execute(adapt_sql("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)"))
 
-        cursor.execute("PRAGMA table_info(chat_sessions)")
-        session_columns = [column[1] for column in cursor.fetchall()]
+        if not IS_POSTGRES:
+            cursor.execute("PRAGMA table_info(chat_sessions)")
+            session_columns = [column[1] for column in cursor.fetchall()]
+        else:
+            cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'chat_sessions'")
+            session_columns = [column[0] for column in cursor.fetchall()]
+            
         if "user_id" not in session_columns:
-            cursor.execute("ALTER TABLE chat_sessions ADD COLUMN user_id INTEGER")
+            cursor.execute(adapt_sql("ALTER TABLE chat_sessions ADD COLUMN user_id INTEGER"))
 
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)")
+        cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)"))
+        cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)"))
 
         conn.commit()
         conn.close()
@@ -172,9 +220,9 @@ def init_db():
 
 
 def get_user_by_username(username: str):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username, email, password_hash FROM users WHERE username = ?", (username,))
+    cursor.execute(adapt_sql("SELECT id, username, email, password_hash FROM users WHERE username = ?"), (username,))
     user = cursor.fetchone()
     conn.close()
     if not user:
@@ -183,9 +231,9 @@ def get_user_by_username(username: str):
 
 
 def get_user_by_email(email: str):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username, email, password_hash FROM users WHERE email = ?", (email,))
+    cursor.execute(adapt_sql("SELECT id, username, email, password_hash FROM users WHERE email = ?"), (email,))
     user = cursor.fetchone()
     conn.close()
     if not user:
@@ -194,11 +242,11 @@ def get_user_by_email(email: str):
 
 
 def create_user(username: str, email: str, password: str):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
     password_hash = generate_password_hash(password)
     cursor.execute(
-        "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+        adapt_sql("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)"),
         (username, email, password_hash),
     )
     conn.commit()
@@ -228,37 +276,37 @@ def api_login_required(view_func):
 
 
 def ensure_session_exists(session_id: str, user_id: int) -> bool:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT 1 FROM chat_sessions WHERE id = ? AND user_id = ?", (session_id, user_id))
+    cursor.execute(adapt_sql("SELECT 1 FROM chat_sessions WHERE id = ? AND user_id = ?"), (session_id, user_id))
     result = cursor.fetchone()
     conn.close()
     return result is not None
 
 def create_new_session(user_id: int):
     session_id = str(uuid.uuid4())
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(adapt_sql("""
         INSERT INTO chat_sessions (id, title, user_id)
         VALUES (?, ?, ?)
-    """, (session_id, "New Legal Research", user_id))
+    """), (session_id, "New Legal Research", user_id))
 
     conn.commit()
     conn.close()
     return session_id
 
 def get_chat_sessions(user_id: int):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(adapt_sql("""
         SELECT id, title, created_at, updated_at
         FROM chat_sessions
         WHERE user_id = ?
         ORDER BY updated_at DESC
-    """, (user_id,))
+    """), (user_id,))
 
     sessions = cursor.fetchall()
     conn.close()
@@ -269,16 +317,16 @@ def get_chat_history(session_id: str, user_id: int):
     if not ensure_session_exists(session_id, user_id):
         return None
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(adapt_sql("""
         SELECT m.id, m.role, m.content, m.timestamp
         FROM chat_messages m
         INNER JOIN chat_sessions s ON s.id = m.session_id
         WHERE m.session_id = ? AND s.user_id = ?
         ORDER BY timestamp ASC
-    """, (session_id, user_id))
+    """), (session_id, user_id))
 
     messages = cursor.fetchall()
     conn.close()
@@ -289,35 +337,35 @@ def save_message(session_id: str, role: str, content: str, user_id: int):
     if not ensure_session_exists(session_id, user_id):
         return False
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(adapt_sql("""
         INSERT INTO chat_messages (session_id, role, content)
         VALUES (?, ?, ?)
-    """, (session_id, role, content))
+    """), (session_id, role, content))
 
-    cursor.execute("""
+    cursor.execute(adapt_sql("""
         UPDATE chat_sessions
         SET updated_at = CURRENT_TIMESTAMP
         WHERE id = ? AND user_id = ?
-    """, (session_id, user_id))
+    """), (session_id, user_id))
 
     conn.commit()
     conn.close()
     return True
 
 def update_session_title(session_id: str, title: str, user_id: int):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     display_title = title[:50] + "..." if len(title) > 50 else title
     
-    cursor.execute("""
+    cursor.execute(adapt_sql("""
         UPDATE chat_sessions
         SET title = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ? AND user_id = ?
-    """, (display_title, session_id, user_id))
+    """), (display_title, session_id, user_id))
 
     conn.commit()
     conn.close()
@@ -593,6 +641,10 @@ def logout():
     return redirect(url_for("login"))
 
 # Fix 5 — Health endpoint (needed by loading screen)
+@app.route("/ping")
+def ping():
+    return "pong", 200
+
 @app.route("/api/health")
 def health():
     return jsonify({
@@ -682,20 +734,20 @@ def send_message(session_id):
 @api_login_required
 def delete_session(session_id):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         cursor = conn.cursor()
         user_id = session["user_id"]
 
         cursor.execute(
-            """
+            adapt_sql("""
             DELETE FROM chat_messages
             WHERE session_id IN (
                 SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?
             )
-            """,
+            """),
             (session_id, user_id),
         )
-        cursor.execute('DELETE FROM chat_sessions WHERE id = ? AND user_id = ?', (session_id, user_id))
+        cursor.execute(adapt_sql('DELETE FROM chat_sessions WHERE id = ? AND user_id = ?'), (session_id, user_id))
 
         if cursor.rowcount == 0:
             conn.close()
@@ -723,16 +775,16 @@ def edit_message(session_id, message_id):
         if not new_message:
             return jsonify({"error": "Message cannot be empty"}), 400
 
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            adapt_sql("""
             SELECT m.role
             FROM chat_messages m
             INNER JOIN chat_sessions s ON s.id = m.session_id
             WHERE m.id = ? AND m.session_id = ? AND s.user_id = ?
-            """,
+            """),
             (message_id, session_id, user_id)
         )
 
@@ -741,22 +793,22 @@ def edit_message(session_id, message_id):
             conn.close()
             return jsonify({"error": "Message not found or cannot edit assistant messages"}), 404
 
-        cursor.execute("""
+        cursor.execute(adapt_sql("""
             UPDATE chat_messages
             SET content = ?, timestamp = CURRENT_TIMESTAMP
             WHERE id = ? AND session_id = ?
-        """, (new_message, message_id, session_id))
+        """), (new_message, message_id, session_id))
 
-        cursor.execute("""
+        cursor.execute(adapt_sql("""
             DELETE FROM chat_messages
             WHERE session_id = ? AND id > ?
-        """, (session_id, message_id))
+        """), (session_id, message_id))
 
-        cursor.execute("""
+        cursor.execute(adapt_sql("""
             UPDATE chat_sessions
             SET updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND user_id = ?
-        """, (session_id, user_id))
+        """), (session_id, user_id))
 
         conn.commit()
         conn.close()

@@ -10,4 +10,5 @@ beautifulsoup4
 flask-cors
 typing-extensions
 werkzeug
+psycopg2-binary
 
