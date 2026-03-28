@@ -267,17 +267,37 @@ def get_user_by_email(email: str):
 
 
 def create_user(username: str, email: str, password: str):
+    """Creates a new user in the database. Compatible with both SQLite and Postgres."""
     conn = get_db_connection()
     cursor = conn.cursor()
     password_hash = generate_password_hash(password)
-    cursor.execute(
-        adapt_sql("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)"),
-        (username, email, password_hash),
-    )
-    conn.commit()
-    user_id = cursor.lastrowid
-    conn.close()
-    return user_id
+    
+    try:
+        cursor.execute(
+            adapt_sql("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)"),
+            (username, email, password_hash),
+        )
+        conn.commit()
+        
+        # Safe ID retrieval for multiple database types
+        user_id = None
+        try:
+            if not IS_POSTGRES:
+                user_id = cursor.lastrowid
+            else:
+                # If we really needed the ID in Postgres, we would use RETURNING
+                # But for signup, the username/email is the unique identifier for immediate next steps
+                pass
+        except:
+            pass
+            
+        return user_id
+    except Exception as e:
+        app.logger.error(f"Error creating user {username}: {e}")
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 # ------------------------------------------------------
@@ -939,8 +959,13 @@ def verify_signup_otp():
     success, message = verify_otp_logic(email, otp, 'signup')
     
     if success:
-        create_user(username, email, password)
-        return jsonify({"status": "success", "redirect": url_for("login", signup="success")})
+        try:
+            create_user(username, email, password)
+            return jsonify({"status": "success", "redirect": url_for("login", signup="success")})
+        except Exception as e:
+            # If creation fails (e.g., unexpected constraint violation), inform the user
+            app.logger.error(f"Signup completion failed for {email}: {e}")
+            return jsonify({"status": "error", "message": "Account creation failed. Please try again or contact support."}), 500
     else:
         return jsonify({"status": "error", "message": message}), 401
 
