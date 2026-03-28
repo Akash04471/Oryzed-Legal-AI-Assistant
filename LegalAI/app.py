@@ -476,8 +476,15 @@ def verify_otp_logic(email, otp, purpose):
         conn.close()
         return False, "No active verification code found. Please request a new one."
     
-    otp_id, stored_otp, expiry_str, attempts = row
-    expiry_time = datetime.strptime(expiry_str, '%Y-%m-%d %H:%M:%S')
+    otp_id, stored_otp, expiry_val, attempts = row
+    
+    # Handle different database drivers returning different types for TIMESTAMP
+    if isinstance(expiry_val, str):
+        # SQLite usually returns a string
+        expiry_time = datetime.strptime(expiry_val[:19], '%Y-%m-%d %H:%M:%S')
+    else:
+        # Postgres (psycopg2) usually returns a native datetime object
+        expiry_time = expiry_val
     
     if datetime.now() > expiry_time:
         cursor.execute(adapt_sql("UPDATE otp_store SET is_used = 1 WHERE id = ?"), (otp_id,))
