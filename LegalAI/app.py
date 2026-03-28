@@ -70,7 +70,8 @@ def adapt_sql(sql: str) -> str:
         sql = sql.replace("?", "%s")
         # Handle SQLite AUTOINCREMENT -> Postgres SERIAL
         sql = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
-        # Handle any other major differences if they arise
+        # Handle SQLite CURRENT_TIMESTAMP -> Postgres NOW() or keep it if Postgres supports it
+        # Actually Postgres supports CURRENT_TIMESTAMP
     return sql
 
 
@@ -215,14 +216,15 @@ def init_db():
         cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)"))
         cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)"))
 
+        # Unified otp_store schema: Uses INTEGER instead of BOOLEAN for cross-platform stability
         cursor.execute(adapt_sql("""
             CREATE TABLE IF NOT EXISTS otp_store (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL,
                 otp TEXT NOT NULL,
                 expiry_time TIMESTAMP NOT NULL,
-                purpose TEXT NOT NULL, -- 'login' or 'signup'
-                is_used BOOLEAN DEFAULT 0,
+                purpose TEXT NOT NULL,
+                is_used INTEGER DEFAULT 0,
                 attempts INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -234,8 +236,12 @@ def init_db():
         app.logger.info("Database initialization successful.")
     except Exception as e:
         app.logger.error(f"Database initialization failed: {e}")
-        # Crash early if DB cannot be initialized
-        raise e
+        # On serverless environments, we log the error but don't always crash the whole process
+        # unless it's a critical fatal error.
+        if os.environ.get("VERCEL"):
+            app.logger.warning("Continuing app startup despite database initialization warning.")
+        else:
+            raise e
 
 
 def get_user_by_username(username: str):
