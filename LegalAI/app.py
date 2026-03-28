@@ -18,6 +18,11 @@ from typing import Dict, Any # For type hinting the tool's run method
 from typing import Optional
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
+import random
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Load environment variables
 load_dotenv()
@@ -210,6 +215,20 @@ def init_db():
         cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)"))
         cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)"))
 
+        cursor.execute(adapt_sql("""
+            CREATE TABLE IF NOT EXISTS otp_store (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL,
+                otp TEXT NOT NULL,
+                expiry_time TIMESTAMP NOT NULL,
+                purpose TEXT NOT NULL, -- 'login' or 'signup'
+                is_used BOOLEAN DEFAULT 0,
+                attempts INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_otp_store_email ON otp_store(email)"))
+
         conn.commit()
         conn.close()
         app.logger.info("Database initialization successful.")
@@ -253,6 +272,210 @@ def create_user(username: str, email: str, password: str):
     user_id = cursor.lastrowid
     conn.close()
     return user_id
+
+
+# ------------------------------------------------------
+#                  OTP HELPER FUNCTIONS
+# ------------------------------------------------------
+
+def generate_otp():
+    """Generate a random 6-digit OTP."""
+    return str(random.randint(100000, 999999))
+
+def send_otp_email(receiver_email, otp):
+    """Sends OTP via email using SMTP."""
+    sender_email = os.environ.get("MAIL_USER")
+    password = os.environ.get("MAIL_PASS")
+    smtp_server = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("MAIL_PORT", 465))
+
+    if not sender_email or not password:
+        app.logger.error("Email credentials not configured in .env")
+        return False
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = f"{otp} is your Legal AI Verification Code"
+    message["From"] = f"Legal AI <{sender_email}>"
+    message["To"] = receiver_email
+
+    text = f"Your verification code is {otp}. It expires in 5 minutes."
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            .container {{
+                background-color: #020b18;
+                padding: 40px;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: #e2f4ff;
+                text-align: center;
+            }}
+            .card {{
+                max-width: 500px;
+                margin: 0 auto;
+                background: linear-gradient(150deg, #061b34, #051327);
+                border: 1px solid rgba(74, 158, 220, 0.32);
+                border-radius: 20px;
+                padding: 40px 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            }}
+            .logo-text {{
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 25px;
+                letter-spacing: 1px;
+            }}
+            .oryzed {{ color: #c9a84c; }}
+            .legal-ai {{ color: #4fc3f7; }}
+            .title {{
+                color: #e2f4ff;
+                font-size: 22px;
+                margin-bottom: 20px;
+                font-weight: 500;
+            }}
+            .subtitle {{
+                color: #7ea7c4;
+                font-size: 15px;
+                line-height: 1.6;
+                margin-bottom: 30px;
+            }}
+            .otp-container {{
+                background: rgba(79, 195, 247, 0.08);
+                border: 1px dashed rgba(79, 195, 247, 0.3);
+                border-radius: 12px;
+                padding: 25px;
+                margin: 20px 0;
+            }}
+            .otp-code {{
+                font-size: 38px;
+                font-weight: 700;
+                letter-spacing: 12px;
+                color: #1a6eb5;
+                margin: 0;
+                text-shadow: 0 0 10px rgba(79, 195, 247, 0.2);
+            }}
+            .expiry {{
+                font-size: 13px;
+                color: #7ea7c4;
+                margin-top: 25px;
+            }}
+            .footer {{
+                margin-top: 40px;
+                border-top: 1px solid rgba(74, 158, 220, 0.15);
+                padding-top: 25px;
+                font-size: 12px;
+                color: #567e9c;
+            }}
+        </style>
+    </head>
+    <body style="margin: 0; padding: 0;">
+        <div class="container">
+            <div class="card">
+                <div class="logo-text">
+                    <span class="oryzed">Oryzed-</span><span class="legal-ai">LegalAI</span>
+                </div>
+                <div class="title">Security Verification</div>
+                <div class="subtitle">
+                    To maintain the integrity of your isolated workspace and research sessions, please use the following one-time password (OTP) to complete your access.
+                </div>
+                <div class="otp-container">
+                    <h1 class="otp-code">{otp}</h1>
+                </div>
+                <div class="expiry">
+                    This verification code will expire in <strong>5 minutes</strong>.
+                </div>
+                <div class="footer">
+                    Secure Research Access | This is an automated security message.
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    message.attach(MIMEText(text, "plain"))
+    message.attach(MIMEText(html, "html"))
+
+    try:
+        context = ssl.create_default_context()
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_server, smtp_port, context=context) as server:
+                server.login(sender_email, password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+        else:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls(context=context)
+                server.login(sender_email, password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+        return True
+    except Exception as e:
+        app.logger.error(f"Failed to send email: {e}")
+        # FALLBACK: Log to console so developer can see the OTP if email fails
+        print(f"\n[DEVELOPMENT OTP FALLBACK] TO: {receiver_email} | CODE: {otp}\n")
+        return False
+
+def save_otp(email, otp, purpose):
+    """Saves OTP to database with 5 minute expiry."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    # Invalidate previous unused OTPs for this email and purpose
+    cursor.execute(adapt_sql("UPDATE otp_store SET is_used = 1 WHERE email = ? AND purpose = ? AND is_used = 0"), (email, purpose))
+    
+    expiry_time = datetime.now()
+    # Add 5 minutes to expiry
+    from datetime import timedelta
+    expiry_at = datetime.now() + timedelta(minutes=5)
+    
+    cursor.execute(
+        adapt_sql("INSERT INTO otp_store (email, otp, expiry_time, purpose) VALUES (?, ?, ?, ?)"),
+        (email, otp, expiry_at.strftime('%Y-%m-%d %H:%M:%S'), purpose)
+    )
+    conn.commit()
+    conn.close()
+
+def verify_otp_logic(email, otp, purpose):
+    """Verifies OTP and handles expiration/attempts."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Get the latest active OTP
+    cursor.execute(
+        adapt_sql("SELECT id, otp, expiry_time, attempts FROM otp_store WHERE email = ? AND purpose = ? AND is_used = 0 ORDER BY created_at DESC LIMIT 1"),
+        (email, purpose)
+    )
+    row = cursor.fetchone()
+    
+    if not row:
+        conn.close()
+        return False, "No active verification code found. Please request a new one."
+    
+    otp_id, stored_otp, expiry_str, attempts = row
+    expiry_time = datetime.strptime(expiry_str, '%Y-%m-%d %H:%M:%S')
+    
+    if datetime.now() > expiry_time:
+        cursor.execute(adapt_sql("UPDATE otp_store SET is_used = 1 WHERE id = ?"), (otp_id,))
+        conn.commit()
+        conn.close()
+        return False, "Verification code has expired. Please try again."
+    
+    if attempts >= 3:
+        cursor.execute(adapt_sql("UPDATE otp_store SET is_used = 1 WHERE id = ?"), (otp_id,))
+        conn.commit()
+        conn.close()
+        return False, "Too many failed attempts. Please request a new code."
+    
+    if stored_otp != otp:
+        cursor.execute(adapt_sql("UPDATE otp_store SET attempts = attempts + 1 WHERE id = ?"), (otp_id,))
+        conn.commit()
+        conn.close()
+        return False, f"Invalid code. {2 - attempts} attempts remaining."
+    
+    # Success: Mark OTP as used
+    cursor.execute(adapt_sql("UPDATE otp_store SET is_used = 1 WHERE id = ?"), (otp_id,))
+    conn.commit()
+    conn.close()
+    return True, "success"
 
 
 def login_required(view_func):
@@ -577,28 +800,71 @@ def login():
     if "user_id" in session:
         return redirect(url_for("index"))
 
-    error = ""
+    if request.method == "POST":
+        # Handle AJAX login request
+        data = request.get_json()
+        if not data:
+            return jsonify({"status": "error", "message": "Invalid request."}), 400
+            
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+
+        if not email or not password:
+            return jsonify({"status": "error", "message": "Email and password are required."}), 400
+        
+        user = get_user_by_email(email)
+        if not user or not check_password_hash(user["password_hash"], password):
+            return jsonify({"status": "error", "message": "Invalid email or password."}), 401
+        
+        # Valid credentials, now send OTP
+        otp = generate_otp()
+        email_sent = send_otp_email(email, otp)
+        
+        # We always save the OTP even if email fails, so the fallback code in console works
+        save_otp(email, otp, 'login')
+        
+        if email_sent:
+            return jsonify({"status": "otp_sent", "email": email})
+        else:
+            # If email fails, we return success anyway in development if we logged it to console
+            # Change this to error if you want strict email requirement
+            return jsonify({
+                "status": "otp_sent", 
+                "email": email, 
+                "warning": "Email failed to send, but verification code generated (Check server console)."
+            })
+
     notice = ""
     if request.args.get("signup") == "success":
         notice = "Account created successfully. Please login to continue."
+    
+    return render_template("login.html", notice=notice)
 
-    if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-
-        if not email or not password:
-            error = "Email and password are required."
-        else:
-            user = get_user_by_email(email)
-            if not user or not check_password_hash(user["password_hash"], password):
-                error = "Invalid email or password."
-            else:
-                session.clear()
-                session["user_id"] = user["id"]
-                session["username"] = user["username"]
-                return redirect(url_for("index"))
-
-    return render_template("login.html", error=error, notice=notice)
+@app.route("/verify-login-otp", methods=["POST"])
+def verify_login_otp():
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid request."}), 400
+        
+    email = data.get("email", "").strip().lower()
+    otp = data.get("otp", "").strip()
+    
+    if not email or not otp:
+        return jsonify({"status": "error", "message": "OTP is required."}), 400
+        
+    success, message = verify_otp_logic(email, otp, 'login')
+    
+    if success:
+        user = get_user_by_email(email)
+        if not user:
+             return jsonify({"status": "error", "message": "User not found."}), 404
+             
+        session.clear()
+        session["user_id"] = user["id"]
+        session["username"] = user["username"]
+        return jsonify({"status": "success", "redirect": url_for("index")})
+    else:
+        return jsonify({"status": "error", "message": message}), 401
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -606,33 +872,71 @@ def signup():
     if "user_id" in session:
         session.clear()
 
-    error = ""
     if request.method == "POST":
-        username = request.form.get("username", "").strip().lower()
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        confirm_password = request.form.get("confirm_password", "")
+        data = request.get_json()
+        if not data:
+            return jsonify({"status": "error", "message": "Invalid request."}), 400
+            
+        username = data.get("username", "").strip().lower()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+        confirm_password = data.get("confirm_password", "")
 
         if not username or not email or not password or not confirm_password:
-            error = "All fields are required."
+            return jsonify({"status": "error", "message": "All fields are required."}), 400
         elif len(username) < 3:
-            error = "Username must be at least 3 characters long."
+            return jsonify({"status": "error", "message": "Username must be at least 3 characters long."}), 400
         elif not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
-            error = "Please enter a valid email address."
+            return jsonify({"status": "error", "message": "Please enter a valid email address."}), 400
         elif len(password) < 8:
-            error = "Password must be at least 8 characters long."
+            return jsonify({"status": "error", "message": "Password must be at least 8 characters long."}), 400
         elif password != confirm_password:
-            error = "Passwords do not match."
+            return jsonify({"status": "error", "message": "Passwords do not match."}), 400
         elif get_user_by_username(username):
-            error = "Username already exists."
+            return jsonify({"status": "error", "message": "Username already exists."}), 400
         elif get_user_by_email(email):
-            error = "Email is already registered."
+            return jsonify({"status": "error", "message": "Email is already registered."}), 400
+        
+        # All valid, send OTP
+        otp = generate_otp()
+        email_sent = send_otp_email(email, otp)
+        
+        # Always save for potential fallback/manual override
+        save_otp(email, otp, 'signup')
+        
+        if email_sent:
+            return jsonify({"status": "otp_sent", "email": email})
         else:
-            create_user(username, email, password)
-            session.clear()
-            return redirect(url_for("login", signup="success"))
+            # Allow proceeding in development if email fails
+            return jsonify({
+                "status": "otp_sent", 
+                "email": email,
+                "warning": "Email failed to send, but verification code generated (Check server console)."
+            })
 
-    return render_template("signup.html", error=error)
+    return render_template("signup.html")
+
+@app.route("/verify-signup-otp", methods=["POST"])
+def verify_signup_otp():
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid request."}), 400
+        
+    username = data.get("username", "").strip().lower()
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+    otp = data.get("otp", "").strip()
+    
+    if not otp:
+        return jsonify({"status": "error", "message": "Verification code is required."}), 400
+        
+    success, message = verify_otp_logic(email, otp, 'signup')
+    
+    if success:
+        create_user(username, email, password)
+        return jsonify({"status": "success", "redirect": url_for("login", signup="success")})
+    else:
+        return jsonify({"status": "error", "message": message}), 401
 
 
 @app.route("/logout", methods=["POST", "GET"])

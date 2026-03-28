@@ -29,32 +29,45 @@
             <h1 class="auth-title parallax-layer" data-depth="9">Create <span class="accent">Account</span></h1>
             <p class="auth-subtitle parallax-layer" data-depth="6">Sign up to keep research sessions isolated by user, while preserving your own legal research history and task flow.</p>
 
-            {% if error %}
-            <div class="auth-error" role="alert">{{ error }}</div>
-            {% endif %}
+            <div id="auth-error-box" class="auth-error" style="display: none;" role="alert"></div>
 
-            <form method="post" action="/signup" class="auth-form" autocomplete="off">
-                <label class="auth-label" for="username">Username</label>
-                <div class="auth-input-wrap">
-                    <input class="auth-input" id="username" name="username" type="text" minlength="3" placeholder="Choose username" required />
+            <form id="signup-form" class="auth-form" autocomplete="off">
+                <div id="credentials-stage">
+                    <label class="auth-label" for="username">Username</label>
+                    <div class="auth-input-wrap">
+                        <input class="auth-input" id="username" name="username" type="text" minlength="3" placeholder="Choose username" required />
+                    </div>
+
+                    <label class="auth-label" for="email">Email</label>
+                    <div class="auth-input-wrap">
+                        <input class="auth-input" id="email" name="email" type="email" placeholder="Enter email" required />
+                    </div>
+
+                    <label class="auth-label" for="password">Password</label>
+                    <div class="auth-input-wrap">
+                        <input class="auth-input" id="password" name="password" type="password" minlength="8" placeholder="Create password" required />
+                    </div>
+
+                    <label class="auth-label" for="confirm_password">Confirm password</label>
+                    <div class="auth-input-wrap">
+                        <input class="auth-input" id="confirm_password" name="confirm_password" type="password" minlength="8" placeholder="Repeat password" required />
+                    </div>
+
+                    <button class="auth-btn" type="submit" id="signup-btn">Sign Up</button>
                 </div>
 
-                <label class="auth-label" for="email">Email</label>
-                <div class="auth-input-wrap">
-                    <input class="auth-input" id="email" name="email" type="email" placeholder="Enter email" required />
-                </div>
+                <div id="otp-stage" style="display: none;">
+                    <div class="auth-tagline" style="margin-bottom: 0.5rem;">Verify Your Email</div>
+                    <p class="auth-subtitle" style="margin-top: 0; font-size: 0.85rem;">We've sent a 6-digit code to your email. Verification must be completed to activate your account.</p>
+                    
+                    <label class="auth-label" for="otp">Verification Code</label>
+                    <div class="auth-input-wrap">
+                        <input class="auth-input" id="otp" name="otp" type="text" maxlength="6" pattern="\d{6}" placeholder="Enter 6-digit code" />
+                    </div>
 
-                <label class="auth-label" for="password">Password</label>
-                <div class="auth-input-wrap">
-                    <input class="auth-input" id="password" name="password" type="password" minlength="8" placeholder="Create password" required />
+                    <button class="auth-btn" type="button" id="verify-otp-btn">Verify & Create Account</button>
+                    <button class="auth-alt" type="button" id="back-to-signup" style="background:none; border:none; cursor:pointer; padding:0; margin-top:1rem; width:100%; text-align:center;">Back to details</button>
                 </div>
-
-                <label class="auth-label" for="confirm_password">Confirm password</label>
-                <div class="auth-input-wrap">
-                    <input class="auth-input" id="confirm_password" name="confirm_password" type="password" minlength="8" placeholder="Repeat password" required />
-                </div>
-
-                <button class="auth-btn" type="submit">Sign Up</button>
             </form>
 
             <p class="auth-alt">Already have an account? <a href="/login">Login</a></p>

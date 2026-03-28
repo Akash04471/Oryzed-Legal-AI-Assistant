@@ -171,9 +171,179 @@
         });
     }
 
+    function initAuthLogic() {
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const errorBox = document.getElementById('auth-error-box');
+
+        function showError(msg) {
+            if (!errorBox) return;
+            errorBox.textContent = msg;
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideError() {
+            if (!errorBox) return;
+            errorBox.style.display = 'none';
+        }
+
+        async function postData(url, data) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return response.json();
+        }
+
+        // --- Login Logic ---
+        if (loginForm) {
+            const credentialsStage = document.getElementById('credentials-stage');
+            const otpStage = document.getElementById('otp-stage');
+            const verifyOtpBtn = document.getElementById('verify-otp-btn');
+            const backToLoginBtn = document.getElementById('back-to-login');
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideError();
+                const btn = e.submitter;
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Verifying...';
+
+                try {
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const result = await postData('/login', { email, password });
+
+                    if (result.status === 'otp_sent') {
+                        credentialsStage.style.display = 'none';
+                        otpStage.style.display = 'block';
+                    } else {
+                        showError(result.message || 'Login failed.');
+                    }
+                } catch (err) {
+                    showError('Server error. Please try again.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            });
+
+            if (verifyOtpBtn) {
+                verifyOtpBtn.addEventListener('click', async () => {
+                    hideError();
+                    verifyOtpBtn.disabled = true;
+                    verifyOtpBtn.textContent = 'Verifying OTP...';
+
+                    try {
+                        const email = document.getElementById('email').value;
+                        const otp = document.getElementById('otp').value;
+                        const result = await postData('/verify-login-otp', { email, otp });
+
+                        if (result.status === 'success') {
+                            window.location.href = result.redirect;
+                        } else {
+                            showError(result.message || 'Invalid OTP.');
+                        }
+                    } catch (err) {
+                        showError('Verification failed.');
+                    } finally {
+                        verifyOtpBtn.disabled = false;
+                        verifyOtpBtn.textContent = 'Verify & Login';
+                    }
+                });
+            }
+
+            if (backToLoginBtn) {
+                backToLoginBtn.addEventListener('click', () => {
+                    otpStage.style.display = 'none';
+                    credentialsStage.style.display = 'block';
+                    hideError();
+                });
+            }
+        }
+
+        // --- Signup Logic ---
+        if (signupForm) {
+            const credentialsStage = document.getElementById('credentials-stage');
+            const otpStage = document.getElementById('otp-stage');
+            const verifyOtpBtn = document.getElementById('verify-otp-btn');
+            const backToSignupBtn = document.getElementById('back-to-signup');
+
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideError();
+                const btn = e.submitter;
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+
+                try {
+                    const username = document.getElementById('username').value;
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const confirm_password = document.getElementById('confirm_password').value;
+
+                    const result = await postData('/signup', { username, email, password, confirm_password });
+
+                    if (result.status === 'otp_sent') {
+                        credentialsStage.style.display = 'none';
+                        otpStage.style.display = 'block';
+                    } else {
+                        showError(result.message || 'Signup failed.');
+                    }
+                } catch (err) {
+                    showError('Server error. Please try again.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            });
+
+            if (verifyOtpBtn) {
+                verifyOtpBtn.addEventListener('click', async () => {
+                    hideError();
+                    verifyOtpBtn.disabled = true;
+                    verifyOtpBtn.textContent = 'Creating Account...';
+
+                    try {
+                        const username = document.getElementById('username').value;
+                        const email = document.getElementById('email').value;
+                        const password = document.getElementById('password').value;
+                        const otp = document.getElementById('otp').value;
+                        
+                        const result = await postData('/verify-signup-otp', { username, email, password, otp });
+
+                        if (result.status === 'success') {
+                            window.location.href = result.redirect;
+                        } else {
+                            showError(result.message || 'Verification failed.');
+                        }
+                    } catch (err) {
+                        showError('Signup failed.');
+                    } finally {
+                        verifyOtpBtn.disabled = false;
+                        verifyOtpBtn.textContent = 'Verify & Create Account';
+                    }
+                });
+            }
+
+            if (backToSignupBtn) {
+                backToSignupBtn.addEventListener('click', () => {
+                    otpStage.style.display = 'none';
+                    credentialsStage.style.display = 'block';
+                    hideError();
+                });
+            }
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initBackgroundMesh();
         initCard4D();
         initFocusGlow();
+        initAuthLogic();
     });
 })();
