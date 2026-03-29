@@ -615,9 +615,10 @@
         }
 
         function updateCounter() {
-            const ta = g('cosmicTextarea'), cc = g('charCount'), bs = g('btnSend');
+            const ta = g('cosmicTextarea'), cc = document.querySelector('.char-counter'), bs = g('btnSend');
             if (!ta || !cc) return;
-            const n = ta.value.length; cc.textContent = n;
+            const n = ta.value.length;
+            cc.textContent = n > 0 ? `${n}/4000` : '';
             if (bs) bs.disabled = n === 0 || S.loading;
         }
 
@@ -669,9 +670,91 @@
                         ta2.focus(); updateCounter();
                         ta2.style.height = 'auto';
                         ta2.style.height = Math.min(ta2.scrollHeight, 160) + 'px';
+                        /* If it's a persistent chip, we might want to auto-send? 
+                           User said "click to fill", so we'll stop there. */
                     }
                 }
             });
+
+            /* Voice Input Logic (Robust Version) */
+            const micBtn = g('btnMic');
+            if (micBtn && (W.SpeechRecognition || W.webkitSpeechRecognition)) {
+                const SpeechAPI = W.SpeechRecognition || W.webkitSpeechRecognition;
+                const rec = new SpeechAPI();
+                rec.continuous = false;
+                rec.interimResults = false;
+                rec.lang = 'en-IN';
+
+                let isListening = false;
+
+                function setMicActive(active) {
+                    isListening = active;
+                    if (active) {
+                        micBtn.classList.add('listening');
+                    } else {
+                        micBtn.classList.remove('listening');
+                    }
+                }
+
+                micBtn.addEventListener('click', async () => {
+                    if (isListening) {
+                        try { rec.stop(); } catch(e) {}
+                    } else {
+                        try {
+                            // Explicitly request mic access to trigger prompt
+                            await navigator.mediaDevices.getUserMedia({ audio: true });
+                            rec.start();
+                        } catch (err) {
+                            console.warn('Mic Start Error:', err);
+                            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                                alert('Microphone access is blocked in your browser settings.\n\nPlease click the Lock icon (🔒) or Settings icon next to the URL and set Microphone to "Allow".');
+                            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                                alert('No microphone detected on this device.');
+                            } else {
+                                alert('Could not access microphone. Please try on http://localhost or over HTTPS.');
+                            }
+                            setMicActive(false);
+                        }
+                    }
+                });
+
+                rec.onstart = () => {
+                    setMicActive(true);
+                    console.log('Mic Listening...');
+                };
+
+                rec.onend = () => {
+                    setMicActive(false);
+                    console.log('Mic Stopped.');
+                };
+
+                rec.onerror = (e) => {
+                    console.error('Speech Error:', e.error);
+                    setMicActive(false);
+                    if (e.error === 'not-allowed') {
+                        alert('Mic Access Denied. Please enable microphone permissions in your browser settings.');
+                    }
+                };
+
+                rec.onresult = (e) => {
+                    const result = e.results[0][0].transcript;
+                    const ta = g('cosmicTextarea');
+                    if (ta) {
+                        const prev = ta.value.trim();
+                        ta.value = (prev ? prev + ' ' : '') + result;
+                        ta.focus();
+                        updateCounter();
+                        ta.style.height = 'auto';
+                        ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+                    }
+                    setMicActive(false);
+                };
+            } else if (micBtn) {
+                micBtn.addEventListener('click', () => {
+                    alert('Sorry, your browser does not support Speech Recognition. Try Chrome or Edge.');
+                });
+                micBtn.style.opacity = '0.3';
+            }
 
             const cw = g('chatWrapper');
             if (cw) cw.addEventListener('scroll', () => {

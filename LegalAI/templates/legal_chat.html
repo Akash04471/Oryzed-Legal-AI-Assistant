@@ -354,14 +354,11 @@
                     <p class="empty-sub">Ask about Indian law, case analysis, legal procedures, rights, or any legal
                         matter.</p>
                     <div class="prompt-chips" role="group" aria-label="Quick prompts">
-                        <button class="prompt-chip" data-prompt="What are my rights if I am arrested in India?">Rights
-                            on arrest</button>
-                        <button class="prompt-chip"
-                            data-prompt="Explain Section 498A IPC in detail with case law.">Section 498A IPC</button>
-                        <button class="prompt-chip" data-prompt="What is the process for filing an FIR in India?">How to
-                            file an FIR</button>
-                        <button class="prompt-chip" data-prompt="What is habeas corpus and when can it be used?">Habeas
-                            Corpus</button>
+                        <button class="prompt-chip" data-prompt="Explain legal rights">Explain legal rights</button>
+                        <button class="prompt-chip" data-prompt="Summarize a case">Summarize a case</button>
+                        <button class="prompt-chip" data-prompt="Draft a legal notice">Draft a legal notice</button>
+                        <button class="prompt-chip" data-prompt="What is FIR?">What is FIR?</button>
+                        <button class="prompt-chip" data-prompt="Explain IPC sections">Explain IPC sections</button>
                     </div>
                 </div>
 
@@ -376,19 +373,30 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     New message
                 </div>
+
                 <div class="input-bar" id="inputBar">
-                    <textarea id="cosmicTextarea" class="chat-input" placeholder="Ask your legal question…" rows="1"
-                        maxlength="4000" aria-label="Legal question input" aria-multiline="true"></textarea>
-                    <div class="input-actions">
-                        <span class="char-counter" aria-live="polite">
-                            <span id="charCount">0</span>/4000
-                        </span>
-                        <button id="btnSend" class="btn-send" aria-label="Send message" disabled>
-                        <svg id="sendIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    <!-- Left: Attachment Button -->
+                    <button id="btnAttach" class="btn-action btn-plus" aria-label="Attach features">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>
+
+                    <textarea id="cosmicTextarea" class="chat-input" placeholder="Ask anything…" rows="1"
+                        maxlength="4000" aria-label="Legal question input" aria-multiline="true"></textarea>
+
+                    <div class="input-actions">
+                        <!-- Right: Voice Input + Send -->
+                        <span class="char-counter" aria-live="polite" style="margin-right: 4px;"></span>
+
+                        <button id="btnMic" class="btn-action btn-mic" aria-label="Voice input">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        </button>
+
+                        <button id="btnSend" class="btn-send" aria-label="Send message" disabled>
+                            <svg id="sendIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
                     </div>
                 </div>
-                <p class="input-disclaimer">By using this LegalAI chatbot, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms and Conditions</a>. This system provides legal information only - not a substitute for qualified legal advice.</p>
+                <p class="input-disclaimer">By using this LegalAI chatbot, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms and Conditions</a>. This system provides legal information only.</p>
             </div>
         </div><!-- /.chat-body -->
 

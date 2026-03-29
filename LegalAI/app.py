@@ -402,7 +402,7 @@ def send_otp_email(receiver_email, otp):
         <div class="container">
             <div class="card">
                 <div class="logo-text">
-                    <img src="https://oryzed-legal-ai-assistant.vercel.app/static/Oryzed_Logo.png" alt="Oryzed" style="height: 48px; width: auto; display: block; margin: 0 auto;">
+                    <img src="https://oryzed-legal-ai-assistant.vercel.app/static/17.png" alt="Oryzed" style="width: 200px; height: auto; display: block; margin: 0 auto 10px auto;">
                 </div>
                 <div class="title">Security Verification</div>
                 <div class="subtitle">

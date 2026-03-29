@@ -1501,21 +1501,40 @@ body {
 
 .prompt-chip {
     font-family: var(--font-answer);
-    padding: 0.45rem 0.95rem;
-    background: rgba(26, 110, 181, 0.1);
-    border: 1px solid rgba(74, 158, 220, 0.18);
-    border-radius: 20px;
-    color: var(--cyan);
-    font-size: 0.82rem;
+    padding: 0.5rem 1.1rem;
+    background: rgba(26, 110, 181, 0.08);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    color: var(--ice);
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: background var(--t-fast), border-color var(--t-fast),
-        transform var(--t-fast) var(--ease-spring);
+    white-space: nowrap;
+    transition: all var(--t-fast) var(--ease-out);
+    user-select: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .prompt-chip:hover {
-    background: rgba(26, 110, 181, 0.22);
+    background: rgba(26, 110, 181, 0.2);
     border-color: var(--ice);
     transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 195, 247, 0.15);
+}
+
+/* ── Persistent Suggestions ── */
+.persistent-suggestions {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.5rem 1.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-bottom: 0.5rem;
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+
+.persistent-suggestions::-webkit-scrollbar {
+    display: none;
 }
 
 /* ── Messages ── */
@@ -1807,18 +1826,23 @@ body {
 .input-bar {
     display: flex;
     align-items: flex-end;
-    gap: 0.6rem;
-    background: rgba(4, 20, 40, 0.85);
-    border: 1px solid rgba(74, 158, 220, 0.22);
-    backdrop-filter: blur(20px);
-    border-radius: var(--radius-input);
-    padding: 0.65rem 0.75rem;
-    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+    gap: 0.5rem;
+    background: rgba(10, 14, 26, 0.7);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-radius: 28px;
+    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+    transition: all var(--t-base) var(--ease-out);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin: 0 auto;
+    width: 100%;
+    max-width: 800px;
 }
 
 .input-bar:focus-within {
-    border-color: var(--ice);
-    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.12);
+    border-color: rgba(79, 195, 247, 0.5);
+    box-shadow: 0 12px 48px rgba(26, 110, 181, 0.25), 0 0 0 1px rgba(79, 195, 247, 0.2);
 }
 
 .chat-input {
@@ -1828,11 +1852,12 @@ body {
     outline: none;
     color: var(--text);
     font-family: var(--font-answer);
-    font-size: 0.92rem;
-    line-height: 1.55;
+    font-size: 0.95rem;
+    line-height: 1.5;
     resize: none;
     max-height: 160px;
-    min-height: 26px;
+    min-height: 40px;
+    padding: 0.6rem 0.4rem;
     cursor: text;
     scrollbar-width: thin;
 }
@@ -1844,8 +1869,56 @@ body {
 .input-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     flex-shrink: 0;
+    margin-bottom: 0.15rem;
+}
+
+/* Round Action Buttons */
+.btn-action {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all var(--t-fast) ease;
+}
+
+.btn-action:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+}
+
+.btn-plus {
+    width: 40px;
+    height: 40px;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.btn-plus:hover {
+    color: var(--ice);
+}
+
+.btn-mic {
+    font-size: 1rem;
+}
+
+.btn-mic.listening {
+    color: #ef5350;
+    background: rgba(239, 83, 80, 0.1);
+    box-shadow: 0 0 15px rgba(239, 83, 80, 0.3);
+    animation: micPulse 1.5s infinite;
+}
+
+@keyframes micPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.4); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 83, 80, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); }
 }
 
 .char-counter {
@@ -1857,27 +1930,26 @@ body {
 
 /* Send button */
 .btn-send {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: rgba(26, 110, 181, 0.28);
-    border: 1px solid rgba(74, 158, 220, 0.35);
-    color: var(--ice);
-    font-size: 0.95rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--ice);
+    border: none;
+    color: var(--bg-deep);
+    font-size: 0.9rem;
     display: grid;
     place-items: center;
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: background var(--t-fast), border-color var(--t-fast),
-        transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast);
+    transition: all var(--t-fast) var(--ease-spring);
+    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.3);
 }
 
 .btn-send:not(:disabled):hover {
-    background: var(--primary);
-    border-color: var(--ice);
-    box-shadow: 0 4px 20px rgba(79, 195, 247, 0.4);
-    transform: scale(1.06);
+    background: var(--hotspot);
+    transform: scale(1.1) translateY(-1px);
+    box-shadow: 0 6px 20px rgba(79, 195, 247, 0.5);
 }
 
 .btn-send:not(:disabled):active {
