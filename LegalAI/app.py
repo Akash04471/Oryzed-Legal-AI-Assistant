@@ -21,8 +21,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import smtplib
 import ssl
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
+import ssl
 
 # Load environment variables
 load_dotenv()
@@ -320,11 +322,11 @@ def send_otp_email(receiver_email, otp):
         return False
 
     message = MIMEMultipart("alternative")
-    message["Subject"] = f"{otp} is your Legal AI Verification Code"
-    message["From"] = f"Legal AI <{sender_email}>"
+    message["Subject"] = f"{otp} is your Oryzed Verification Code"
+    message["From"] = f"Oryzed <{sender_email}>"
     message["To"] = receiver_email
 
-    text = f"Your verification code is {otp}. It expires in 5 minutes."
+    text = f"{otp} is your Oryzed Verification Code"
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -400,7 +402,7 @@ def send_otp_email(receiver_email, otp):
         <div class="container">
             <div class="card">
                 <div class="logo-text">
-                    <span class="oryzed">Oryzed-</span><span class="legal-ai">LegalAI</span>
+                    <img src="https://oryzed-legal-ai-assistant.vercel.app/static/Oryzed_Logo.png" alt="Oryzed" style="height: 48px; width: auto; display: block; margin: 0 auto;">
                 </div>
                 <div class="title">Security Verification</div>
                 <div class="subtitle">
