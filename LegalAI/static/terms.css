@@ -26,6 +26,9 @@ body {
     color: var(--text);
     background: #0a0e1a;
     overflow-x: hidden;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100vh;
 }
 
 #termsCanvas {

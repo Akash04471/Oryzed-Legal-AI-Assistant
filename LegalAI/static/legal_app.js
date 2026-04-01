@@ -568,18 +568,34 @@
 
         async function sendMessage() {
             const ta = g('cosmicTextarea'), bs = g('btnSend');
+            const fileInput = g('fileAttachInput');
             if (!ta || S.loading) return;
-            const text = ta.value.trim(); if (!text) return;
+            const text = ta.value.trim(); 
+            const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+            const file = hasFile ? fileInput.files[0] : null;
+            if (!text && !hasFile) return;
+            
             if (!S.sessionId) await newSession();
 
             S.loading = true;
-            ta.value = ''; ta.style.height = ''; updateCounter();
+            ta.value = ''; ta.style.height = ''; 
             if (bs) { bs.disabled = true; bs.classList.add('sending'); particleBurst(bs); setTimeout(() => bs.classList.remove('sending'), 550); }
 
-            appendMsg('user', text, true);
+            const displayMsg = file ? (text ? `${text}\n[Attached: ${file.name}]` : `[Attached: ${file.name}]`) : text;
+            appendMsg('user', displayMsg, true);
             const thinkBub = showThinking();
             try {
-                const res = await apiFetch(`/api/chat/${S.sessionId}/message`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
+                let options = { method: 'POST' };
+                if (file) {
+                    const fd = new FormData();
+                    fd.append('message', text);
+                    fd.append('file', file);
+                    options.body = fd;
+                } else {
+                    options.headers = { 'Content-Type': 'application/json' };
+                    options.body = JSON.stringify({ message: text });
+                }
+                const res = await apiFetch(`/api/chat/${S.sessionId}/message`, options);
                 const data = await res.json();
                 hideThinking(thinkBub);
 
@@ -595,7 +611,9 @@
                 appendMsg('assistant', 'Network error. Please try again.', true);
             } finally {
                 S.loading = false;
-                if (bs) bs.disabled = false;
+                if (fileInput) fileInput.value = '';
+                const pill = g('attachmentPill'); if (pill) pill.hidden = true;
+                updateCounter();
                 if (ta) ta.focus();
             }
         }
@@ -619,7 +637,9 @@
             if (!ta || !cc) return;
             const n = ta.value.length;
             cc.textContent = n > 0 ? `${n}/4000` : '';
-            if (bs) bs.disabled = n === 0 || S.loading;
+            const fileInput = g('fileAttachInput');
+            const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+            if (bs) bs.disabled = (n === 0 && !hasFile) || S.loading;
         }
 
         function particleBurst(btn) {
@@ -648,6 +668,38 @@
             sa('btnCtaEnterChat', enterChat);
             sa('btnSend', sendMessage);
             sa('newMsgPill', () => scrollBot(true));
+
+            // New Attach Events
+            const btnAttach = g('btnAttach');
+            const fileInput = g('fileAttachInput');
+            const attachPill = g('attachmentPill');
+            const attachName = g('attachmentName');
+            const btnRemoveAttach = g('btnRemoveAttachment');
+
+            if (btnAttach && fileInput) {
+                btnAttach.addEventListener('click', () => { fileInput.click(); });
+            }
+            if (fileInput && attachPill && attachName) {
+                fileInput.addEventListener('change', () => {
+                    if (fileInput.files.length > 0) {
+                        attachName.textContent = fileInput.files[0].name;
+                        attachPill.hidden = false;
+                        updateCounter();
+                        const ta = g('cosmicTextarea');
+                        if (ta) ta.focus();
+                    } else {
+                        attachPill.hidden = true;
+                        updateCounter();
+                    }
+                });
+            }
+            if (btnRemoveAttach) {
+                btnRemoveAttach.addEventListener('click', () => {
+                    if (fileInput) fileInput.value = '';
+                    if (attachPill) attachPill.hidden = true;
+                    updateCounter();
+                });
+            }
 
             const ta = g('cosmicTextarea');
             if (ta) {

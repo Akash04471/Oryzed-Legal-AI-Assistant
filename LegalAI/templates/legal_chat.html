@@ -369,6 +369,15 @@
 
             <!-- Input section -->
             <div class="input-section">
+                <!-- File Attachment Pill -->
+                <div id="attachmentPill" class="attachment-pill" role="status" hidden>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span id="attachmentName" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">file.pdf</span>
+                    <button id="btnRemoveAttachment" style="background:none; border:none; color:inherit; margin-left:8px; cursor:pointer; padding:2px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+
                 <div id="newMsgPill" class="new-msg-pill" role="status" hidden>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     New message
@@ -379,6 +388,8 @@
                     <button id="btnAttach" class="btn-action btn-plus" aria-label="Attach features">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>
+                    <!-- Hidden file upload -->
+                    <input type="file" id="fileAttachInput" accept=".pdf,.doc,.docx,.txt,image/png,image/jpeg,image/webp,image/jpg" style="display: none;" />
 
                     <textarea id="cosmicTextarea" class="chat-input" placeholder="Ask anything…" rows="1"
                         maxlength="4000" aria-label="Legal question input" aria-multiline="true"></textarea>
@@ -396,11 +407,298 @@
                         </button>
                     </div>
                 </div>
-                <p class="input-disclaimer">By using this LegalAI chatbot, you agree to our <a href="/terms" target="_blank" rel="noopener">Terms and Conditions</a>. This system provides legal information only.</p>
+                <p class="input-disclaimer">By using this LegalAI chatbot, you agree to our <a href="#" id="btnOpenTermsModal">Terms and Conditions and AI Usage Policy</a>. This system provides legal information only.</p>
             </div>
         </div><!-- /.chat-body -->
 
     </div><!-- /#chatApp -->
+
+    <!-- TERMS & AI POLICY MODAL -->
+    <div id="termsModalOverlay" class="terms-modal-overlay" aria-hidden="true">
+        <div class="terms-modal-content" role="dialog" aria-modal="true" aria-labelledby="termsModalTitle">
+            <button id="btnCloseTermsModal" class="btn-close-modal" aria-label="Close terms modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2 id="termsModalTitle" class="terms-title">Privacy Policy & AI Usage Terms</h2>
+            <div class="terms-date">Oryzed Effective Date: 1st April 2026</div>
+            <div class="terms-scroll-area">
+                <p>At Oryzed, we build AI for the legal domain. We understand that in the legal field, confidentiality and data protection are paramount. This Policy explains exactly what data we collect, how we protect it, and your rights regarding your information.</p>
+                <p><strong>Our core promise:</strong> Your data is yours. We do not sell your Personal Data, and we process it strictly in compliance with the Digital Personal Data Protection (DPDP) Act, 2023, the Information Technology Act, 2000, and the SPDI Rules, 2011.</p>
+
+                <h3>Part 1: How We Handle Your Data</h3>
+
+                <h4>1. The Data We Collect</h4>
+                <p>To provide our Services, we collect specific types of information. We practice data minimization, meaning we only collect what we absolutely need.</p>
+                <ul>
+                    <li><strong>Information You Provide:</strong> Your name, email, phone number, account credentials, and payment/billing details.</li>
+                    <li><strong>Your Content (Prompts & Documents):</strong> The queries, prompts, and legal documents you upload or interact with on our platform.</li>
+                    <li><strong>Sensitive Personal Data:</strong> Financial information (like payment details) and authentication data. We only collect this with your explicit, affirmative consent.</li>
+                    <li><strong>Automated Data:</strong> Your IP address, device/browser details, and usage logs to keep our platform secure and functional.</li>
+                    <li><strong>Location Data:</strong> Approximate location (via IP) for security. We will never track your precise location without your explicit consent.</li>
+                </ul>
+
+                <h4>2. Why We Process Your Data</h4>
+                <p>We process your data strictly to:</p>
+                <ul>
+                    <li>Deliver, maintain, and secure the Oryzed platform.</li>
+                    <li>Personalize your user experience.</li>
+                    <li>Improve our AI’s performance, safety, and features.</li>
+                    <li>Comply with Indian legal obligations and prevent fraud or misuse.</li>
+                </ul>
+
+                <h4>3. Who We Share Your Data With (And Who We Don't)</h4>
+                <p>We never sell your personal data to data brokers or third parties for marketing. We only share data with:</p>
+                <ul>
+                    <li><strong>Trusted Service Providers:</strong> Companies that help us run our business (e.g., secure cloud hosting, payment processors). They are bound by strict confidentiality agreements.</li>
+                    <li><strong>Legal Authorities:</strong> Only if strictly required by a valid legal order or law enforcement request.</li>
+                </ul>
+
+                <h4>4. Data Retention & Deletion</h4>
+                <p>We keep your data only as long as you have an active account with us.</p>
+                <ul>
+                    <li><strong>The 30-Day Rule:</strong> If you delete your account or request data deletion, we will permanently delete or fully anonymize your data within 30 days.</li>
+                    <li><strong>Exceptions:</strong> We may retain specific data longer solely if required for legal compliance, fraud prevention, or resolving ongoing disputes.</li>
+                </ul>
+
+                <h4>5. Your Rights as a User</h4>
+                <p>Under the DPDP Act, you have absolute control over your data. You have the right to:</p>
+                <ul>
+                    <li>Access the personal data we hold about you.</li>
+                    <li>Correct any inaccuracies in your data.</li>
+                    <li>Erase/Delete your data entirely.</li>
+                    <li>Withdraw Consent at any time (which may affect your ability to use certain features).</li>
+                    <li>Nominate a representative to exercise your rights in the event of death or incapacity.</li>
+                    <li>Grievance Redressal through our dedicated officer (details below).</li>
+                </ul>
+
+                <h4>6. Security & Cross-Border Transfers</h4>
+                <p>We treat your data, especially legal documents, with the highest security standards. We implement robust encryption, strict access controls, and secure infrastructure. If your data must be processed outside India (e.g., on global cloud servers), we ensure it is protected by legal safeguards equivalent to Indian law.</p>
+
+                <h3>Part 2: Artificial Intelligence & Legal Disclaimers</h3>
+                <p>Because Oryzed is an AI-powered legal tool, it is crucial to understand how the technology interacts with your data and its limitations.</p>
+
+                <h4>7. AI Model Training & Your Content</h4>
+                <p>We constantly strive to improve Oryzed. To do this, User Content (like prompts) may be used to train and enhance our AI systems.</p>
+                <ul>
+                    <li><strong>Strict Safeguards:</strong> Whenever data is used for training, it is strictly aggregated or anonymized.</li>
+                    <li><strong>Confidential Legal Data:</strong> While we implement reasonable safeguards, no cloud system is impenetrable. We strongly advise users to redact highly sensitive, privileged, or personally identifiable client information before uploading documents to the platform.</li>
+                </ul>
+
+                <h4>8. The Nature of AI (Hallucinations)</h4>
+                <p>Oryzed uses probabilistic models. This means the AI generates outputs based on patterns, not human reasoning.</p>
+                <ul>
+                    <li><strong>Inaccuracies:</strong> AI outputs may contain errors, fabricated information ("hallucinations"), or outdated case law.</li>
+                    <li><strong>User Verification:</strong> You must independently verify all AI-generated outputs before using them in any professional capacity.</li>
+                </ul>
+
+                <h4>9. Not Legal Advice & No Attorney-Client Relationship</h4>
+                <p>Oryzed is a software tool, not a law firm. * No output generated by Oryzed constitutes legal advice, a legal opinion, or professional consultation.</p>
+                <ul>
+                    <li>Using Oryzed does not create an attorney-client relationship between you and the Company.</li>
+                    <li>Our platform does not make legally binding automated decisions; it is strictly an assistive tool designed to support—not replace—your professional judgment.</li>
+                </ul>
+
+                <h4>10. Limitation of Liability & Indemnity</h4>
+                <p>You are solely responsible for how you use Oryzed's outputs in your legal practice or personal matters.</p>
+                <ul>
+                    <li>Oryzed shall not be liable for any errors, omissions, or damages resulting from your reliance on our AI outputs.</li>
+                    <li>By using the Services, you agree to indemnify Oryzed against any claims arising from your misuse of the platform, your reliance on its outputs, or your failure to comply with applicable laws.</li>
+                </ul>
+
+                <h3>Part 3: Contact & Administration</h3>
+
+                <h4>11. Cookies</h4>
+                <p>We use cookies essential for functionality, security, and basic analytics. You can control your cookie preferences at any time through your browser settings.</p>
+
+                <h4>12. Children's Privacy</h4>
+                <p>Oryzed is built for professionals and adults. We do not intentionally collect data from individuals under 18. If we discover we have inadvertently collected such data without parental consent, we will delete it immediately.</p>
+
+                <h4>13. Changes to this Policy</h4>
+                <p>We may update this Policy to reflect new legal or technological developments. Significant changes will be communicated to you directly, and the "Effective Date" at the top will be updated.</p>
+
+                <h4>14. Governing Law & Jurisdiction</h4>
+                <p>This Policy is governed by the laws of India. Any disputes will be subject to the exclusive jurisdiction of the courts in Bangalore, Karnataka.</p>
+
+                <h4>15. Contact Our Grievance Officer</h4>
+                <p>If you have questions, wish to exercise your data rights, or have a grievance, please contact our Grievance Officer:</p>
+                <ul>
+                    <li><strong>Name:</strong> Shreyanshu Kumar</li>
+                    <li><strong>Email:</strong> shreyanshukumar2004@gmail.com</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* ATTACHMENT PILL */
+    .attachment-pill {
+        position: absolute;
+        bottom: 100%;
+        left: 20px;
+        transform: translateY(-8px);
+        background: rgba(10, 28, 43, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(79, 195, 247, 0.3);
+        color: var(--cyan-2, #7fd6ff);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 10;
+        animation: floatUp 0.3s ease;
+    }
+    .attachment-pill[hidden] {
+        display: none !important;
+    }
+    .attachment-pill:hover {
+        border-color: rgba(79, 195, 247, 0.6);
+    }
+    /* TERMS MODAL STYLES */
+    .terms-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9000;
+        background: rgba(2, 11, 24, 0.8);
+        backdrop-filter: blur(12px);
+        opacity: 0;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity var(--t-base) ease;
+    }
+    .terms-modal-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+    .terms-modal-content {
+        background: linear-gradient(145deg, rgba(6, 32, 64, 0.95), rgba(4, 20, 40, 0.98));
+        border: 1px solid rgba(79, 195, 247, 0.25);
+        border-radius: var(--radius-card);
+        width: min(800px, 92vw);
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        transform: translateY(20px) scale(0.98);
+        transition: transform var(--t-base) var(--ease-spring);
+    }
+    .terms-modal-overlay.active .terms-modal-content {
+        transform: translateY(0) scale(1);
+    }
+    .btn-close-modal {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--text-muted);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all var(--t-fast);
+        z-index: 10;
+        padding: 0;
+    }
+    .btn-close-modal:hover {
+        background: rgba(239, 83, 80, 0.15);
+        color: #ef5350;
+        border-color: rgba(239, 83, 80, 0.3);
+        transform: rotate(90deg);
+    }
+    .terms-title {
+        font-family: var(--font-brand, 'Inter', sans-serif);
+        font-size: 1.6rem;
+        color: var(--ice);
+        padding: 24px 30px 5px;
+        margin: 0;
+    }
+    .terms-date {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        padding: 0 30px 20px;
+        border-bottom: 1px solid rgba(74, 158, 220, 0.15);
+    }
+    .terms-scroll-area {
+        overflow-y: auto;
+        padding: 30px;
+        color: var(--text);
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+    .terms-scroll-area::-webkit-scrollbar {
+        width: 6px;
+    }
+    .terms-scroll-area::-webkit-scrollbar-thumb {
+        background: rgba(79, 195, 247, 0.3);
+        border-radius: 4px;
+    }
+    .terms-scroll-area h3 {
+        color: var(--gold);
+        font-family: var(--font-brand, 'Inter', sans-serif);
+        margin: 2rem 0 1rem;
+        font-size: 1.25rem;
+    }
+    .terms-scroll-area h4 {
+        color: var(--ice);
+        font-weight: 600;
+        margin: 1.5rem 0 0.5rem;
+        font-size: 1.05rem;
+    }
+    .terms-scroll-area p, .terms-scroll-area ul {
+        margin-bottom: 1rem;
+        color: rgba(226, 244, 255, 0.85);
+    }
+    .terms-scroll-area ul {
+        padding-left: 1.5rem;
+    }
+    .terms-scroll-area li {
+        margin-bottom: 0.5rem;
+    }
+    .terms-scroll-area strong {
+        color: var(--text);
+        font-weight: 600;
+    }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnOpen = document.getElementById('btnOpenTermsModal');
+        const modal = document.getElementById('termsModalOverlay');
+        const btnClose = document.getElementById('btnCloseTermsModal');
+
+        if (btnOpen && modal && btnClose) {
+            btnOpen.addEventListener('click', (e) => {
+                e.preventDefault();
+                modal.classList.add('active');
+            });
+
+            btnClose.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+            
+            // Allow escape key to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    modal.classList.remove('active');
+                }
+            });
+        }
+    });
+    </script>
 
     <!-- App JS -->
     <script src="/static/legal_app.js" defer></script>

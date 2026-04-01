@@ -25,6 +25,21 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
 import ssl
+import base64
+from io import BytesIO
+try:
+    import PyPDF2
+except ImportError:
+    PyPDF2 = None
+try:
+    import docx
+except ImportError:
+    docx = None
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+from werkzeug.utils import secure_filename
 
 # Load environment variables
 load_dotenv()
@@ -98,6 +113,65 @@ def _looks_like_auth_error(raw_error: str) -> bool:
         "api key",
     ]
     return any(p in normalized for p in patterns)
+
+
+def extract_file_content(file) -> str:
+    """Extracts text from uploaded file based on its extension/mimetype."""
+    if not file:
+        return ""
+    
+    filename = secure_filename(file.filename).lower()
+    
+    try:
+        if filename.endswith('.txt'):
+            return file.read().decode('utf-8', errors='replace')
+            
+        elif filename.endswith('.pdf') and PyPDF2:
+            pdf_reader = PyPDF2.PdfReader(file)
+            text = []
+            for page in pdf_reader.pages:
+                text.append(page.extract_text() or "")
+            return "\n".join(text)[:15000] # safety limit
+            
+        elif (filename.endswith('.doc') or filename.endswith('.docx')) and docx:
+            doc = docx.Document(file)
+            return "\n".join([paragraph.text for paragraph in doc.paragraphs])[:15000] # safety limit
+            
+        elif filename.endswith(('.png', '.jpg', '.jpeg', '.webp')):
+            # Using Groq vision model to extract text from image
+            image_data = file.read()
+            base64_image = base64.b64encode(image_data).decode('utf-8')
+            
+            groq_key = _get_llm_api_key()
+            if not groq_key:
+                return "[Error: Vision API key not found for image analysis]"
+                
+            from groq import Groq
+            client = Groq(api_key=groq_key)
+            
+            ext = filename.split('.')[-1]
+            if ext == "jpg": ext = "jpeg"
+            mime_type = f"image/{ext}"
+            
+            response = client.chat.completions.create(
+                model="llama-3.2-11b-vision-preview",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Extract all text from this image and briefly describe its legal context or contents."},
+                            {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}}
+                        ]
+                    }
+                ],
+                max_tokens=1024
+            )
+            return f"[Image Description/Extracted Text]: {response.choices[0].message.content}"
+    except Exception as e:
+        app.logger.error(f"Error extracting file content: {e}")
+        return f"[Error extracting file content: {str(e)}]"
+        
+    return "[Unsupported file format or required library missing]"
 
 
 def _fallback_legal_response(user_message: str) -> str:
@@ -1025,8 +1099,16 @@ def send_message(session_id):
         if not ensure_session_exists(session_id, user_id):
             return jsonify({"error": "Session not found"}), 404
 
-        data = request.get_json()
-        user_message = data.get("message", "").strip()
+        if request.content_type and request.content_type.startswith('multipart/form-data'):
+            user_message = request.form.get("message", "").strip()
+            file = request.files.get("file")
+            
+            if file and file.filename:
+                extracted_text = extract_file_content(file)
+                user_message += f"\n\n[Attached File Content: {file.filename}]\n{extracted_text}"
+        else:
+            data = request.get_json()
+            user_message = data.get("message", "").strip() if data else ""
 
         if not user_message:
             return jsonify({"error": "Message cannot be empty"}), 400
