@@ -149,6 +149,11 @@
             <div class="session-list-label">Recent Research</div>
             <div id="sidebarSessions" class="session-list" role="list"></div>
 
+            <div class="session-list-label" style="margin-top: 1.8rem; border-top: 1px solid rgba(74, 158, 220, 0.15); padding-top: 1rem;">Reference Library</div>
+            <div id="sidebarDocuments" class="session-list" role="list" style="max-height: 250px; overflow-y: auto;">
+                <!-- Synced documents populated dynamically -->
+            </div>
+
             <div class="sidebar-user-panel" aria-label="Signed in user details">
                 <div class="sidebar-user-avatar">{{ (username[:1] if username else 'U')|upper }}</div>
                 <div class="sidebar-user-meta">
@@ -243,32 +248,40 @@
         <!-- ── SECTION 2: FEATURES ── -->
         <section id="featuresSection" class="land-section features-section" aria-labelledby="featTitle">
             <div class="section-eyebrow reveal-item">CAPABILITIES</div>
-            <h2 id="featTitle" class="section-title reveal-item">Built for Legal Excellence</h2>
-            <p class="section-sub reveal-item">Expert-grade analysis grounded in Indian jurisprudence.</p>
+            <h2 id="featTitle" class="section-title reveal-item">Smart Assistant Capabilities</h2>
+            <p class="section-sub reveal-item">Cutting-edge legal technology made simple and accessible.</p>
             <div class="features-grid">
                 <div class="feature-card reveal-item" data-delay="0">
                     <div class="feat-icon-wrap" aria-hidden="true">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     </div>
-                    <h3>Legal Research Excellence</h3>
-                    <p>Comprehensive synthesis of case law, statutes, and precedents from authoritative Indian legal databases including Indian Kanoon and LawBhoomi.</p>
-                    <div class="feat-tag">Supreme Court · High Courts</div>
+                    <h3>Smart Semantic Search</h3>
+                    <p>Instead of just matching exact words, our AI understands the core meaning of your questions, references the law, and explains it in plain language.</p>
+                    <div class="feat-tag">AI-Powered · Deep Understanding</div>
                 </div>
                 <div class="feature-card reveal-item feat-highlight" data-delay="1">
                     <div class="feat-icon-wrap" aria-hidden="true">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M5 13a7 7 0 1 1 14 0"></path><line x1="2" y1="21" x2="22" y2="21"></line></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><path d="M12 11v6"></path><path d="M9 14l3-3 3 3"></path></svg>
                     </div>
-                    <h3>Advanced Case Analysis</h3>
-                    <p>Systematic methodology for dissecting facts, framing legal issues, and analyzing judicial reasoning to provide expert-level insights.</p>
-                    <div class="feat-tag">Ratio Decidendi · Precedents</div>
+                    <h3>Digital Law Library</h3>
+                    <p>Access an extensive, built-in database of legal literature, acts, and reference documents compiled dynamically in the AI's memory.</p>
+                    <div class="feat-tag">Always Updated · Comprehensive</div>
                 </div>
                 <div class="feature-card reveal-item" data-delay="2">
                     <div class="feat-icon-wrap" aria-hidden="true">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                     </div>
-                    <h3>Jurisprudential Intelligence</h3>
-                    <p>Specialized guidance across civil, criminal, and constitutional domains, bolstered by real-time citations of transformative judgments.</p>
-                    <div class="feat-tag">Constitution · Statutes</div>
+                    <h3>Read Files & Photo Scans</h3>
+                    <p>Upload PDFs, Word docs, or even take a photo of paper notes. Our advanced Vision AI reads text directly from images, scans them for you, and extracts key details instantly.</p>
+                    <div class="feat-tag">Smart Reader · Multi-Format</div>
+                </div>
+                <div class="feature-card reveal-item" data-delay="3">
+                    <div class="feat-icon-wrap" aria-hidden="true">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <h3>Instant Legal Summaries</h3>
+                    <p>Retrieve statutory law, case references, and research summaries from trusted platforms like LawBhoomi and Indian Kanoon automatically in real-time.</p>
+                    <div class="feat-tag">Real-Time · Verified Sources</div>
                 </div>
             </div>
         </section>
@@ -530,6 +543,11 @@
     </div>
 
     <style>
+    /* FEATURES GRID OVERRIDE */
+    .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+    }
+
     /* ATTACHMENT PILL */
     .attachment-pill {
         position: absolute;
@@ -698,6 +716,10 @@
             });
         }
     });
+    </script>
+
+    <script>
+        window.isUserLoggedIn = {% if username %}true{% else %}false{% endif %};
     </script>
 
     <!-- App JS -->

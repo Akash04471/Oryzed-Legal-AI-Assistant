@@ -1645,7 +1645,7 @@ body {
     padding: 0.85rem 1.1rem;
     border-radius: var(--radius-card);
     line-height: 1.7;
-    font-size: 0.9rem;
+    font-size: 0.98rem;
 }
 
 .user-message .message-text {

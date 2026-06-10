@@ -1,3 +1,16 @@
+import sys
+import os
+import warnings
+
+# Silence pydantic protected namespace warnings from external libraries like Agno
+warnings.filterwarnings("ignore", category=UserWarning, message=".*protected namespace.*")
+
+# Ensure the parent directory is in sys.path so absolute imports of 'LegalAI' succeed
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(BASE_DIR)
+if PARENT_DIR not in sys.path:
+    sys.path.insert(0, PARENT_DIR)
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from dotenv import load_dotenv
 # Agno imports
@@ -292,7 +305,6 @@ def init_db():
         cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)"))
         cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)"))
 
-        # Unified otp_store schema: Uses INTEGER instead of BOOLEAN for cross-platform stability
         cursor.execute(adapt_sql("""
             CREATE TABLE IF NOT EXISTS otp_store (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -306,6 +318,17 @@ def init_db():
             )
         """))
         cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_otp_store_email ON otp_store(email)"))
+
+        cursor.execute(adapt_sql("""
+            CREATE TABLE IF NOT EXISTS synced_files (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                drive_file_id TEXT NOT NULL UNIQUE,
+                file_name TEXT NOT NULL,
+                upload_date TEXT NOT NULL,
+                synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        cursor.execute(adapt_sql("CREATE INDEX IF NOT EXISTS idx_synced_files_drive_id ON synced_files(drive_file_id)"))
 
         conn.commit()
         conn.close()
@@ -396,100 +419,103 @@ def send_otp_email(receiver_email, otp):
         return False
 
     message = MIMEMultipart("alternative")
-    message["Subject"] = f"{otp} is your Oryzed Verification Code"
+    message["Subject"] = f"Your Oryzed Verification Code: {otp}"
     message["From"] = f"Oryzed <{sender_email}>"
     message["To"] = receiver_email
+    
+    # Anti-Spam transactional headers
+    message["Auto-Submitted"] = "auto-generated"
+    message["Precedence"] = "bulk"
+    message["X-Auto-Response-Suppress"] = "All"
 
-    text = f"{otp} is your Oryzed Verification Code"
+    text = f"Your Oryzed Verification Code is: {otp}\nThis code is valid for 5 minutes."
     html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <style>
-            .container {{
-                background-color: #020b18;
-                padding: 40px;
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                color: #e2f4ff;
-                text-align: center;
+            .body-wrap {{
+                background-color: #f6f9fc;
+                padding: 30px 15px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: #333333;
             }}
             .card {{
-                max-width: 500px;
+                max-width: 480px;
                 margin: 0 auto;
-                background: linear-gradient(150deg, #061b34, #051327);
-                border: 1px solid rgba(74, 158, 220, 0.32);
-                border-radius: 20px;
-                padding: 40px 30px;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                background-color: #ffffff;
+                border: 1px solid #e6ebf1;
+                border-radius: 8px;
+                padding: 32px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             }}
             .logo-text {{
-                font-size: 24px;
-                font-weight: bold;
-                margin-bottom: 25px;
-                letter-spacing: 1px;
+                font-size: 20px;
+                font-weight: 700;
+                color: #0c2340;
+                margin-bottom: 24px;
+                letter-spacing: 0.5px;
             }}
-            .oryzed {{ color: #c9a84c; }}
-            .legal-ai {{ color: #4fc3f7; }}
             .title {{
-                color: #e2f4ff;
-                font-size: 22px;
-                margin-bottom: 20px;
-                font-weight: 500;
+                font-size: 20px;
+                font-weight: 600;
+                color: #0c2340;
+                margin-bottom: 16px;
             }}
             .subtitle {{
-                color: #7ea7c4;
-                font-size: 15px;
-                line-height: 1.6;
-                margin-bottom: 30px;
+                font-size: 14px;
+                line-height: 1.5;
+                color: #525f7f;
+                margin-bottom: 24px;
             }}
             .otp-container {{
-                background: rgba(79, 195, 247, 0.08);
-                border: 1px dashed rgba(79, 195, 247, 0.3);
-                border-radius: 12px;
-                padding: 25px;
+                background-color: #f6f9fc;
+                border: 1px solid #e6ebf1;
+                border-radius: 6px;
+                padding: 16px;
                 margin: 20px 0;
+                text-align: center;
             }}
             .otp-code {{
-                font-size: 38px;
+                font-size: 32px;
                 font-weight: 700;
-                letter-spacing: 12px;
+                letter-spacing: 6px;
                 color: #1a6eb5;
                 margin: 0;
-                text-shadow: 0 0 10px rgba(79, 195, 247, 0.2);
             }}
             .expiry {{
-                font-size: 13px;
-                color: #7ea7c4;
-                margin-top: 25px;
+                font-size: 12px;
+                color: #8898aa;
+                margin-top: 20px;
+                text-align: center;
             }}
             .footer {{
-                margin-top: 40px;
-                border-top: 1px solid rgba(74, 158, 220, 0.15);
-                padding-top: 25px;
-                font-size: 12px;
-                color: #567e9c;
+                margin-top: 32px;
+                border-top: 1px solid #e6ebf1;
+                padding-top: 16px;
+                font-size: 11px;
+                color: #8898aa;
+                text-align: center;
             }}
         </style>
     </head>
     <body style="margin: 0; padding: 0;">
-        <div class="container">
+        <div class="body-wrap">
             <div class="card">
-                <div class="logo-text">
-                    <img src="https://oryzed-legal-ai-assistant.vercel.app/static/17.png" alt="Oryzed" style="width: 200px; height: auto; display: block; margin: 0 auto 10px auto;">
-                </div>
-                <div class="title">Security Verification</div>
+                <div class="logo-text">Oryzed Legal AI</div>
+                <div class="title">Verification Code</div>
                 <div class="subtitle">
-                    To maintain the integrity of your isolated workspace and research sessions, please use the following one-time password (OTP) to complete your access.
+                    Please use the verification code below to access your research workspace. This code is valid for 5 minutes.
                 </div>
                 <div class="otp-container">
                     <h1 class="otp-code">{otp}</h1>
                 </div>
                 <div class="expiry">
-                    This verification code will expire in <strong>5 minutes</strong>.
+                    If you did not request this code, you can safely ignore this email.
                 </div>
                 <div class="footer">
-                    Secure Research Access | This is an automated security message.
+                    Oryzed Legal AI Assistant &bull; Transactional Verification Code
                 </div>
             </div>
         </div>
@@ -833,8 +859,9 @@ def init_legal_agent() -> None:
     os.environ["GROQ_API_KEY"] = api_key
 
     try:
+        model_name = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
         legal_agent = Agent(
-            model=Groq(id="llama-3.3-70b-versatile", temperature=0.1),
+            model=Groq(id=model_name, temperature=0.1),
             description=LEGAL_SYSTEM_PROMPT,
             instructions=[
                 "🚨 CRITICAL: You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters. Any deviation is strictly prohibited.",
@@ -894,7 +921,6 @@ def get_chat_context(session_id: str, user_id: int, limit=10):
 # ------------------------------------------------------
 
 @app.route("/")
-@login_required
 def index():
     return render_template('legal_chat.html', username=session.get("username", ""))
 
@@ -1083,6 +1109,23 @@ def new_session():
 def get_sessions_route():
     return jsonify({"sessions": get_chat_sessions(session["user_id"])})
 
+@app.route("/api/documents", methods=["GET"])
+@api_login_required
+def get_synced_documents():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(adapt_sql("SELECT file_name, upload_date FROM synced_files ORDER BY file_name ASC"))
+        files = cursor.fetchall()
+        conn.close()
+        return jsonify({
+            "status": "success",
+            "documents": [{"name": f[0], "upload_date": f[1]} for f in files]
+        })
+    except Exception as e:
+        app.logger.error(f"Error fetching synced documents: {e}")
+        return jsonify({"status": "error", "message": "Failed to retrieve documents"}), 500
+
 @app.route("/api/chat/<session_id>", methods=["GET"])
 @api_login_required
 def get_chat(session_id):
@@ -1120,37 +1163,30 @@ def send_message(session_id):
 
         save_message(session_id, "user", user_message, user_id)
 
-        # Lazy init agent if needed
-        agent = get_legal_agent()
-
-        # Fix 2 — inject formatted conversation context (last 10 msgs)
+        # Get conversation context (last 10 msgs)
         history_text = get_chat_context(session_id, user_id)
-        if history_text:
-            full_prompt = f"""Previous conversation:\n{history_text}\n\nCurrent question: {user_message}\n\nProvide a complete legal analysis following the structured 6-section format."""
-        else:
-            full_prompt = f"{user_message}\n\nProvide a complete legal analysis following the structured 6-section format."
 
-        # Fix 3 — use the singleton agent
-        # Fix 4 — proper error handling
-        if not LLM_READY or agent is None:
+        # Call our new RAG service to process retrieval and generation
+        from LegalAI.services.rag_service import generate_answer
+        try:
+            rag_result = generate_answer(user_message, history_text)
+            ai_response = rag_result["response"]
+            confidence_score = rag_result.get("confidence_score", 0.0)
+            sources = rag_result.get("sources", [])
+        except Exception as rag_err:
+            app.logger.error(f"RAG service error in send_message: {rag_err}")
             ai_response = _fallback_legal_response(user_message)
-        else:
-            try:
-                response = agent.run(full_prompt)
-                ai_response = response.content if hasattr(response, 'content') else str(response)
-
-                # Some provider SDK errors are returned as plain content strings.
-                # Guard against leaking raw provider payloads to the user.
-                if _looks_like_auth_error(ai_response):
-                    app.logger.error("Provider auth/config error in model response: %s", ai_response)
-                    ai_response = _fallback_legal_response(user_message)
-            except Exception as agent_err:
-                app.logger.error(f"Agent error in send_message: {agent_err}")
-                ai_response = _fallback_legal_response(user_message)
+            confidence_score = 0.0
+            sources = []
 
         save_message(session_id, "assistant", ai_response, user_id)
 
-        return jsonify({"response": ai_response, "status": "success"})
+        return jsonify({
+            "response": ai_response,
+            "status": "success",
+            "confidence_score": confidence_score,
+            "sources": sources
+        })
 
     except Exception as e:
         app.logger.error(f"Error in send_message: {e}")
@@ -1239,29 +1275,30 @@ def edit_message(session_id, message_id):
         conn.commit()
         conn.close()
 
-        # Fix 2 + 3 + 4 in edit_message route as well
+        # Get conversation context
         history_text = get_chat_context(session_id, user_id)
-        if history_text:
-            full_prompt = f"""Previous conversation:\n{history_text}\n\nCurrent question: {new_message}\n\nProvide a complete legal analysis following the structured 6-section format."""
-        else:
-            full_prompt = f"{new_message}\n\nProvide a complete legal analysis following the structured 6-section format."
 
-        if not LLM_READY or legal_agent is None:
+        # Call RAG Service to generate answer
+        from LegalAI.services.rag_service import generate_answer
+        try:
+            rag_result = generate_answer(new_message, history_text)
+            ai_response = rag_result["response"]
+            confidence_score = rag_result.get("confidence_score", 0.0)
+            sources = rag_result.get("sources", [])
+        except Exception as rag_err:
+            app.logger.error(f"RAG service error in edit_message: {rag_err}")
             ai_response = _fallback_legal_response(new_message)
-        else:
-            try:
-                response = legal_agent.run(full_prompt)
-                ai_response = response.content if hasattr(response, 'content') else str(response)
-                if _looks_like_auth_error(ai_response):
-                    app.logger.error("Provider auth/config error in model response: %s", ai_response)
-                    ai_response = _fallback_legal_response(new_message)
-            except Exception as agent_err:
-                app.logger.error(f"Agent error in edit_message: {agent_err}")
-                ai_response = _fallback_legal_response(new_message)
+            confidence_score = 0.0
+            sources = []
 
         save_message(session_id, "assistant", ai_response, user_id)
 
-        return jsonify({"response": ai_response, "status": "success"})
+        return jsonify({
+            "response": ai_response,
+            "status": "success",
+            "confidence_score": confidence_score,
+            "sources": sources
+        })
 
     except Exception as e:
         app.logger.error(f"Error in edit_message: {e}")
@@ -1314,5 +1351,78 @@ init_db()
 # AI agent will be lazy-loaded on demand
 
 
+# Secure admin synchronization route (suited for Vercel Cron or manual triggers)
+@app.route("/api/admin/sync", methods=["POST"])
+def admin_sync():
+    # Authenticate via request header or parameter token
+    req_token = request.headers.get("Authorization") or request.args.get("token")
+    env_token = os.environ.get("ADMIN_SYNC_TOKEN")
+    
+    if env_token and req_token != f"Bearer {env_token}" and req_token != env_token:
+        return jsonify({"error": "Unauthorized sync request"}), 401
+        
+    folder_id = request.args.get("folder_id")
+    
+    try:
+        from LegalAI.services.sync_service import sync_google_drive
+        stats = sync_google_drive(folder_id)
+        if isinstance(stats, dict) and "error" in stats:
+            return jsonify({"status": "failed", "error": stats["error"]}), 500
+        return jsonify({"status": "success", "sync_stats": stats})
+    except Exception as e:
+        app.logger.error(f"Admin sync failed: {e}")
+        return jsonify({"status": "failed", "error": str(e)}), 500
+
+
+def start_local_sync_scheduler():
+    """
+    Spawns a background daemon thread that periodically runs
+    Google Drive synchronization (every 24 hours).
+    Does not run if running inside a serverless / Vercel context.
+    """
+    if os.environ.get("VERCEL"):
+        # Serverless environment: background threads are not persistent.
+        return
+        
+    import threading
+    import time
+
+    def run_scheduler():
+        app.logger.info("Local background sync scheduler started.")
+        # Wait for the app to fully initialize and embedding model to load
+        time.sleep(30)
+        while True:
+            try:
+                app.logger.info("Background synchronization running...")
+                from LegalAI.services.sync_service import sync_google_drive
+                sync_google_drive()
+                app.logger.info("Background synchronization completed.")
+            except Exception as e:
+                app.logger.error(f"Background synchronization thread failed: {e}")
+            
+            # Sleep for 24 hours (86400 seconds)
+            time.sleep(24 * 3600)
+            
+    thread = threading.Thread(target=run_scheduler, daemon=True)
+    thread.start()
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    # Pre-load the embedding model before starting the server or sync threads.
+    # This prevents connection resets caused by heavy model loading mid-request.
+    try:
+        from LegalAI.services.embedding_service import preload_model
+        preload_model()
+    except Exception as e:
+        app.logger.warning(f"Embedding model preload skipped: {e}")
+
+    # Initialize Qdrant collection (handles dimension mismatch auto-recreation)
+    try:
+        from LegalAI.services.qdrant_service import init_collection
+        init_collection()
+    except Exception as e:
+        app.logger.warning(f"Qdrant collection init skipped: {e}")
+
+    start_local_sync_scheduler()
+    # use_reloader=False prevents watchdog from detecting model cache file writes
+    # and restarting the server mid-operation. Use manual restart for code changes.
+    app.run(host="0.0.0.0", port=8080, debug=True, use_reloader=False)

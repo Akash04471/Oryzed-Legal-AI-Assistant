@@ -23,3 +23,8 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Credentials and Local DBs
+credentials.json
+qdrant_local/
+qdrant_local_test/

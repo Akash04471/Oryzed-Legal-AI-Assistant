@@ -169,10 +169,50 @@
             const data = await response.json();
             AppState.sessions = data.sessions || [];
             renderSessions();
+            loadDocuments();
         } catch (error) {
             console.error('Error loading sessions:', error);
             showError('Failed to load consultation history');
         }
+    }
+
+    async function loadDocuments() {
+        try {
+            const response = await fetch('/api/documents');
+            const data = await response.json();
+            renderDocuments(data.documents || []);
+        } catch (error) {
+            console.error('Error loading documents:', error);
+        }
+    }
+
+    function renderDocuments(docs) {
+        const c = document.getElementById('sidebarDocuments');
+        if (!c) return;
+        c.innerHTML = '';
+        if (docs.length === 0) {
+            c.innerHTML = `
+                <div style="text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.8rem;">
+                    <p>Library is empty</p>
+                </div>
+            `;
+            return;
+        }
+
+        docs.forEach(doc => {
+            const div = document.createElement('div');
+            div.className = 'session-item doc-item';
+            div.style.pointerEvents = 'none';
+            div.innerHTML = `
+                <div class="session-icon" style="color: var(--neon-gold); font-size: 0.8rem; margin-right: 8px; display: inline-flex; align-items: center;">
+                    <i class="fas fa-file-contract"></i>
+                </div>
+                <div class="session-title" style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;" title="${escapeHtml(doc.name)}">
+                    ${escapeHtml(doc.name)}
+                </div>
+            `;
+            c.appendChild(div);
+        });
     }
 
     function renderSessions() {

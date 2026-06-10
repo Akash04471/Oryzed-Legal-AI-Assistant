@@ -9,6 +9,15 @@ requests
 beautifulsoup4
 flask-cors
 typing-extensions
-werkzeug
 psycopg2-binary
-
+PyPDF2
+python-docx
+Pillow
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+pymupdf
+qdrant-client
+openai
+tiktoken
+sentence-transformers

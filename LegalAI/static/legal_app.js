@@ -95,11 +95,24 @@
                     screen.style.transform = 'scale(1.04)';
                     setTimeout(() => {
                         screen.style.display = 'none';
-                        /* Reveal landing page */
-                        if (landingPage) {
-                            landingPage.style.transition = 'opacity 0.6s ease-out, visibility 0s';
-                            landingPage.style.opacity = '1';
-                            landingPage.style.visibility = 'visible';
+                        if (W.isUserLoggedIn) {
+                            /* Reveal chat page directly */
+                            const chat = document.getElementById('chatApp');
+                            if (chat) {
+                                chat.removeAttribute('hidden');
+                                chat.removeAttribute('aria-hidden');
+                                playVideo(document.getElementById('ljChatVideo'));
+                                requestAnimationFrame(() => chat.classList.add('visible'));
+                            }
+                            App.loadSessions();
+                            App.newSession();
+                        } else {
+                            /* Reveal landing page */
+                            if (landingPage) {
+                                landingPage.style.transition = 'opacity 0.6s ease-out, visibility 0s';
+                                landingPage.style.opacity = '1';
+                                landingPage.style.visibility = 'visible';
+                            }
                         }
                         done();
                     }, 850);
@@ -328,6 +341,10 @@
 
     /* ─── Landing → Chat transition ─── */
     function enterChat() {
+        if (!W.isUserLoggedIn) {
+            W.location.href = '/signup';
+            return;
+        }
         const landing = document.getElementById('landingPage');
         const chat = document.getElementById('chatApp');
         if (!landing || !chat) return;
@@ -401,7 +418,34 @@
                 const data = await apiFetchJson('/api/sessions');
                 S.sessions = data.sessions || [];
                 renderSessions();
+                loadDocuments();
             } catch (e) { console.error(e); }
+        }
+
+        async function loadDocuments() {
+            try {
+                const data = await apiFetchJson('/api/documents');
+                renderDocuments(data.documents || []);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderDocuments(docs) {
+            const c = g('sidebarDocuments'); if (!c) return;
+            c.innerHTML = '';
+            if (!docs.length) {
+                c.innerHTML = '<div class="sessions-empty"><p style="font-size:0.8rem;color:var(--text-muted);text-align:center;">Library is empty</p></div>';
+                return;
+            }
+            docs.forEach(doc => {
+                const div = document.createElement('div');
+                div.className = 'session-item doc-item';
+                div.style.pointerEvents = 'none';
+                div.innerHTML = `<div class="session-icon" style="color:var(--gold);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                <div class="session-details">
+                    <div class="session-title" style="font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted);" title="${esc(doc.name)}">${esc(doc.name)}</div>
+                </div>`;
+                c.appendChild(div);
+            });
         }
 
         function renderSessions() {

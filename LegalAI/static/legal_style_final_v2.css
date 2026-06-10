@@ -936,7 +936,7 @@ html {
     border-radius: 16px;
     padding: var(--space-md) var(--space-lg);
     font-family: var(--font-body);
-    font-size: 0.95rem;
+    font-size: 1.02rem;
     line-height: 1.6;
     position: relative;
 }
