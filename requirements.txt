@@ -20,4 +20,3 @@ pymupdf
 qdrant-client
 openai
 tiktoken
-sentence-transformers
