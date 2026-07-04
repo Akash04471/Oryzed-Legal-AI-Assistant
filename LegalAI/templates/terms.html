@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Terms and Conditions | Legal AI LegalAI</title>
-    <meta name="description" content="Legal AI Terms and Conditions for AI-based legal research and assistance." />
+    <title>Terms and Conditions | ORYZED</title>
+    <meta name="description" content="ORYZED Terms and Conditions for AI-based legal research and assistance." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="/static/vendor/fontawesome/all.min.css?v=20260319" />
     <link rel="stylesheet" href="/static/legal_style_final.css" />
@@ -17,9 +17,6 @@
 </head>
 
 <body>
-    <canvas id="termsCanvas" aria-hidden="true"></canvas>
-    <div class="terms-noise" aria-hidden="true"></div>
-
     <!-- ═══ FIXED HAMBURGER VISUAL ANCHOR ═══ -->
     <a href="/" id="hamburgerBtn" class="hamburger-btn" aria-label="Return to Research"
         style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
@@ -29,19 +26,19 @@
     <!-- ═══ EXQUISITE FLOATING NAVBAR ═══ -->
     <nav class="land-nav" aria-label="Main navigation">
         <div class="nav-brand">
-            <a href="/"><img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo" style="height: 48px; width: auto; object-fit: contain; mix-blend-mode: screen;"></a>
+            <a href="/"><img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo"></a>
         </div>
         <div class="nav-links exquisite-nav">
             <a href="/#heroSection" class="nav-link">Home</a>
             <a href="/#featuresSection" class="nav-link">Capabilities</a>
-            <a href="/terms" class="nav-link" style="color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3);">Terms</a>
+            <a href="/terms" class="nav-link" style="color: var(--color-accent); font-weight: 700;">Terms</a>
             {% if not username %}
             <a href="/login" class="nav-link">Login</a>
             {% else %}
             <a href="/profile" class="nav-link">Profile</a>
             {% endif %}
         </div>
-        <a href="/" class="btn-nav-cta" aria-label="Start research" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--cyan, #4fc3f7), #007bb5); color: #fff; padding: 0.6rem 1.4rem; border-radius: 30px; font-weight: 600; transition: all 0.3s ease;">
+        <a href="/" class="btn-nav-cta" aria-label="Start research" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
             Start Research
         </a>
     </nav>
@@ -59,7 +56,7 @@
         </section>
 
         <section class="terms-card reveal-item" style="background: transparent; box-shadow: none; border: none; padding-bottom: 0;">
-            <h2 style="font-size: 1.6rem; color: var(--gold); margin-bottom: 0;">Part 1: How We Handle Your Data</h2>
+            <h2 style="font-size: 1.6rem; color: var(--color-navy); margin-bottom: 0;">Part 1: How We Handle Your Data</h2>
         </section>
 
         <section class="terms-card reveal-item">
@@ -122,8 +119,8 @@
         </section>
 
         <section class="terms-card reveal-item" style="background: transparent; box-shadow: none; border: none; padding-bottom: 0;">
-            <h2 style="font-size: 1.6rem; color: var(--gold); margin-bottom: 0;">Part 2: Artificial Intelligence & Legal Disclaimers</h2>
-            <p style="color: var(--muted); margin-top: 10px;">Because Oryzed is an AI-powered legal tool, it is crucial to understand how the technology interacts with your data and its limitations.</p>
+            <h2 style="font-size: 1.6rem; color: var(--color-navy); margin-bottom: 0;">Part 2: Artificial Intelligence & Legal Disclaimers</h2>
+            <p style="color: var(--text-secondary); margin-top: 10px;">Because Oryzed is an AI-powered legal tool, it is crucial to understand how the technology interacts with your data and its limitations.</p>
         </section>
 
         <section class="terms-card reveal-item">
@@ -163,7 +160,7 @@
         </section>
 
         <section class="terms-card reveal-item" style="background: transparent; box-shadow: none; border: none; padding-bottom: 0;">
-            <h2 style="font-size: 1.6rem; color: var(--gold); margin-bottom: 0;">Part 3: Contact & Administration</h2>
+            <h2 style="font-size: 1.6rem; color: var(--color-navy); margin-bottom: 0;">Part 3: Contact & Administration</h2>
         </section>
 
         <section class="terms-card reveal-item">

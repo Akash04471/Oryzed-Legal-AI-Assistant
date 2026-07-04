@@ -6,25 +6,19 @@
     const isTouch = 'ontouchstart' in W;
     const mobile = () => innerWidth < 768;
 
-    /* ─── Video helper: ensure a looping video starts playing ─── */
-    function playVideo(el) {
-        if (!el) return;
-        el.muted = true;
-        el.loop = true;
-        el.play().catch(() => { });
-    }
+    /* ─── Video helper: stubbed (no-op) ─── */
+    function playVideo() {}
 
     /* ─── Loading Sequence (Advanced Animated) ─── */
     const Loader = (function () {
         const PHASES = [
-            { t: 0, pct: 12, msg: 'Initializing System…' },
-            { t: 600, pct: 28, msg: 'Connecting to Judicial Matrix…' },
-            { t: 1400, pct: 48, msg: 'Synthesizing Precedents…' },
-            { t: 2200, pct: 68, msg: 'Calibrating AI Models…' },
-            { t: 3000, pct: 85, msg: 'Loading Legal Corpus…' },
-            { t: 3800, pct: 95, msg: 'Finalizing Deployment…' },
+            { t: 0, pct: 12, msg: 'Initializing AI Research Engine...' },
+            { t: 800, pct: 32, msg: 'Loading Indian Legal Knowledge Base...' },
+            { t: 1600, pct: 54, msg: 'Analyzing Case Laws...' },
+            { t: 2400, pct: 72, msg: 'Synthesizing Precedents...' },
+            { t: 3200, pct: 90, msg: 'Preparing Research Workspace...' },
         ];
-        const EXIT_AFTER = 4800;
+        const EXIT_AFTER = 4000;
 
         function spawnAmbientParticles(container) {
             if (!container || RM) return;
@@ -63,18 +57,24 @@
             const barEl = document.getElementById('loadingProgressBar');
             const statusEl = document.getElementById('loadingStatus');
             const ambientBox = document.getElementById('advAmbientParticles');
-            const bgVideo = screen && screen.querySelector('.adv-bg-video');
             const landingPage = document.getElementById('landingPage');
-
+ 
             /* Hide landing page during loading */
             if (landingPage) { landingPage.style.opacity = '0'; landingPage.style.visibility = 'hidden'; }
-
-            if (RM) { if (screen) screen.style.display = 'none'; if (landingPage) { landingPage.style.opacity = '1'; landingPage.style.visibility = 'visible'; } done(); return; }
-
-            /* Force bg video playback */
-            playVideo(bgVideo);
+ 
+            if (RM) {
+                if (screen) screen.style.display = 'none';
+                if (landingPage) {
+                    landingPage.style.opacity = '1';
+                    landingPage.style.visibility = 'visible';
+                }
+                document.body.classList.remove('lock-scroll');
+                done();
+                return;
+            }
+ 
             spawnAmbientParticles(ambientBox);
-
+ 
             /* Phase progression */
             PHASES.forEach(p => {
                 setTimeout(() => {
@@ -82,12 +82,12 @@
                     if (statusEl) statusEl.textContent = p.msg;
                 }, p.t);
             });
-
+ 
             setTimeout(() => {
                 if (barEl) barEl.style.width = '100%';
-                if (statusEl) statusEl.textContent = 'System Ready.';
-            }, EXIT_AFTER - 600);
-
+                if (statusEl) statusEl.textContent = 'Workspace Ready.';
+            }, EXIT_AFTER - 500);
+ 
             /* Exit */
             setTimeout(() => {
                 if (screen) {
@@ -101,9 +101,9 @@
                             if (chat) {
                                 chat.removeAttribute('hidden');
                                 chat.removeAttribute('aria-hidden');
-                                playVideo(document.getElementById('ljChatVideo'));
                                 requestAnimationFrame(() => chat.classList.add('visible'));
                             }
+                            document.body.classList.add('lock-scroll');
                             App.loadSessions();
                             App.newSession();
                         } else {
@@ -113,6 +113,7 @@
                                 landingPage.style.opacity = '1';
                                 landingPage.style.visibility = 'visible';
                             }
+                            document.body.classList.remove('lock-scroll');
                         }
                         done();
                     }, 850);
@@ -123,14 +124,14 @@
         return { run };
     }());
 
-    /* ─── 4D Interactive Tilt for Hero Video Card ─── */
+    /* ─── 4D Interactive Tilt for Hero Dashboard Card ─── */
     (function init4DTilt() {
         const wrap = document.querySelector('.custom-hero-wrap');
         if (!wrap || RM) return;
-        const video = wrap.querySelector('.lj-hero-video');
-        if (!video) return;
+        const card = wrap.querySelector('.hero-mockup-card');
+        if (!card) return;
 
-        const MAX_TILT = 12; // degrees
+        const MAX_TILT = 8; // degrees
 
         wrap.addEventListener('mousemove', function (e) {
             const rect = wrap.getBoundingClientRect();
@@ -140,11 +141,11 @@
             const dy = (e.clientY - cy) / (rect.height / 2); // -1 to 1
             const rotY = dx * MAX_TILT;
             const rotX = -dy * MAX_TILT;
-            video.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.04, 1.04, 1.04)`;
+            card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02, 1.02, 1.02)`;
         });
 
         wrap.addEventListener('mouseleave', function () {
-            video.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+            card.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1)';
         });
     }());
 
@@ -350,12 +351,11 @@
         if (!landing || !chat) return;
         landing.style.transition = 'opacity 0.6s ease';
         landing.style.opacity = '0';
+        document.body.classList.add('lock-scroll');
         setTimeout(() => {
             landing.style.display = 'none';
             chat.removeAttribute('hidden');
             chat.removeAttribute('aria-hidden');
-            /* Ensure chat ghost video plays */
-            playVideo(document.getElementById('ljChatVideo'));
             requestAnimationFrame(() => chat.classList.add('visible'));
             App.loadSessions();
             App.newSession();
@@ -364,26 +364,7 @@
 
     /* ─── Custom Cursor ─── */
     function initCursor() {
-        if (isTouch || mobile()) return;
-        ['cursorInner', 'cursorOuter'].forEach(id => {
-            if (!document.getElementById(id)) {
-                const d = document.createElement('div');
-                d.id = id; d.className = 'cursor-dot'; document.body.appendChild(d);
-            }
-        });
-        const inner = document.getElementById('cursorInner');
-        const outer = document.getElementById('cursorOuter');
-        let mx = -200, my = -200, ox = -200, oy = -200;
-        document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; }, { passive: true });
-        (function ani() {
-            ox += (mx - ox) * .14; oy += (my - oy) * .14;
-            inner.style.left = mx + 'px'; inner.style.top = my + 'px';
-            outer.style.left = ox + 'px'; outer.style.top = oy + 'px';
-            requestAnimationFrame(ani);
-        }());
-        const sel = 'button,a,.session-item,.prompt-chip,textarea';
-        document.addEventListener('mouseover', e => { if (e.target.closest(sel)) outer.classList.add('hover'); });
-        document.addEventListener('mouseout', e => { if (e.target.closest(sel)) outer.classList.remove('hover'); });
+        return; // Disabled for clean, natural system cursor
     }
 
     /* ─── App Logic ─── */
@@ -529,15 +510,15 @@
             let idx = 0;
             bub.innerHTML = `
             <div class="msg-avatar"><svg class="ai-avatar-svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
-                <polygon points="18,4 30,28 6,28" stroke="#4fc3f7" stroke-width="1.5" fill="rgba(26,110,181,0.15)"/>
-                <circle cx="18" cy="4"  r="2" fill="#a8e6ff"/>
-                <circle cx="30" cy="28" r="2" fill="#4fc3f7"/>
-                <circle cx="6"  cy="28" r="2" fill="#4fc3f7"/>
+                <polygon points="18,4 30,28 6,28" stroke="#2563EB" stroke-width="1.5" fill="rgba(10,37,64,0.05)"/>
+                <circle cx="18" cy="4"  r="2" fill="#2563EB"/>
+                <circle cx="30" cy="28" r="2" fill="#2563EB"/>
+                <circle cx="6"  cy="28" r="2" fill="#2563EB"/>
             </svg></div>
             <div class="msg-content">
                 <div class="thinking-indicator">
                     <svg class="thinking-tri" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <polygon points="12,3 21,18 3,18" stroke="#4fc3f7" stroke-width="1.5" fill="rgba(26,110,181,0.2)"/>
+                        <polygon points="12,3 21,18 3,18" stroke="#2563EB" stroke-width="1.5" fill="rgba(10,37,64,0.1)"/>
                     </svg>
                     <span class="thinking-text">${THINK_TEXTS[0]}</span>
                 </div>
@@ -568,10 +549,10 @@
             bub.className = `message-bubble ${isAI ? 'ai-message' : 'user-message'}`;
             bub.innerHTML = isAI
                 ? `<div class="msg-avatar"><svg class="ai-avatar-svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
-                    <polygon points="18,4 30,28 6,28" stroke="#4fc3f7" stroke-width="1.5" fill="rgba(26,110,181,0.15)"/>
-                    <circle cx="18" cy="4"  r="2" fill="#a8e6ff"/>
-                    <circle cx="30" cy="28" r="2" fill="#4fc3f7"/>
-                    <circle cx="6"  cy="28" r="2" fill="#4fc3f7"/>
+                    <polygon points="18,4 30,28 6,28" stroke="#2563EB" stroke-width="1.5" fill="rgba(10,37,64,0.05)"/>
+                    <circle cx="18" cy="4"  r="2" fill="#2563EB"/>
+                    <circle cx="30" cy="28" r="2" fill="#2563EB"/>
+                    <circle cx="6"  cy="28" r="2" fill="#2563EB"/>
                </svg></div>
                <div class="msg-content"><div class="msg-role-label">Legal AI</div><div class="message-text ai-text"></div></div>`
                 : `<div class="msg-content"><div class="msg-role-label">You</div><div class="message-text">${esc(content)}</div></div>`;
@@ -766,8 +747,6 @@
                         ta2.focus(); updateCounter();
                         ta2.style.height = 'auto';
                         ta2.style.height = Math.min(ta2.scrollHeight, 160) + 'px';
-                        /* If it's a persistent chip, we might want to auto-send? 
-                           User said "click to fill", so we'll stop there. */
                     }
                 }
             });
@@ -797,7 +776,6 @@
                         try { rec.stop(); } catch(e) {}
                     } else {
                         try {
-                            // Explicitly request mic access to trigger prompt
                             await navigator.mediaDevices.getUserMedia({ audio: true });
                             rec.start();
                         } catch (err) {
@@ -816,16 +794,13 @@
 
                 rec.onstart = () => {
                     setMicActive(true);
-                    console.log('Mic Listening...');
                 };
 
                 rec.onend = () => {
                     setMicActive(false);
-                    console.log('Mic Stopped.');
                 };
 
                 rec.onerror = (e) => {
-                    console.error('Speech Error:', e.error);
                     setMicActive(false);
                     if (e.error === 'not-allowed') {
                         alert('Mic Access Denied. Please enable microphone permissions in your browser settings.');
@@ -864,14 +839,12 @@
 
     /* ─── Bootstrap ─── */
     document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('lock-scroll'); // Lock scroll during loading
         BgCanvas.setup();
         initCursor();
         initHamburger();
         initScrollytelling();
         App.wireEvents();
-
-        /* Kick off all loop videos that are currently on-screen */
-        ['ljHeroVideo', 'ljCtaVideo'].forEach(id => playVideo(document.getElementById(id)));
 
         /* Show landing (it starts aria-hidden) */
         const lp = document.getElementById('landingPage');
@@ -880,8 +853,9 @@
         if (RM) {
             const ls = document.getElementById('loadingScreen');
             if (ls) ls.style.display = 'none';
+            if (!W.isUserLoggedIn && lp) document.body.classList.remove('lock-scroll');
         } else {
-            Loader.run(() => { /* nothing extra needed — videos auto-play */ });
+            Loader.run(() => { /* nothing extra needed */ });
         }
     });
 

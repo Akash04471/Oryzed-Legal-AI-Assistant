@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Legal AI — Intelligent Legal Assistant</title>
+    <title>ORYZED — Intelligent Legal Assistant</title>
     <meta name="description"
-        content="Legal AI: AI-powered legal intelligence for Indian law. Structured, expert-level analysis." />
+        content="ORYZED: AI-powered legal intelligence for Indian law. Structured, expert-level analysis." />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
 
     <!-- Icons -->
@@ -32,97 +32,28 @@
 
 <body>
 
-    <!-- ═══ LIVE WALLPAPER CANVAS ═══ -->
-    <canvas id="bgCanvas" aria-hidden="true"></canvas>
-
     <!-- ═══ ADVANCED LOADING SCREEN ═══ -->
-    <div id="loadingScreen" class="adv-loading-screen" role="status" aria-label="Loading Legal AI">
-
-        <!-- Figma Branding Base -->
-        <div class="figma-radial-bg" aria-hidden="true"></div>
-        <div class="figma-glow-layer" aria-hidden="true">
-            <div class="figma-glow-blob"></div>
-            <div class="figma-glow-blob figma-glow-blob-2"></div>
-        </div>
-        <div class="figma-scanlines" aria-hidden="true"></div>
-
-        <!-- Noise texture overlay (SVG filter) -->
-        <svg class="adv-noise-texture" aria-hidden="true">
-            <filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter>
-            <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
-        </svg>
-
-        <!-- Faded background video -->
-        <video class="adv-bg-video" autoplay loop muted playsinline aria-hidden="true">
-            <source src="/static/justice_lady_landingpage.mp4" type="video/mp4">
-        </video>
-        <div class="adv-grid-layer" aria-hidden="true">
-            <svg width="100%" height="100%">
-                <defs>
-                    <pattern id="oryzedGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-                        <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="0.5" class="adv-grid-path"/>
-                    </pattern>
-                    <linearGradient id="gridFade" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="white" stop-opacity="0"/>
-                        <stop offset="50%" stop-color="white" stop-opacity="1"/>
-                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-                    </linearGradient>
-                    <mask id="gridMask"><rect width="100%" height="100%" fill="url(#gridFade)"/></mask>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#oryzedGrid)" mask="url(#gridMask)"/>
-            </svg>
-        </div>
-
-        <!-- Radial gradient glow -->
-        <div class="adv-radial-glow" aria-hidden="true"></div>
-
-        <!-- Scanning line -->
-        <div id="advScanLine" class="adv-scan-line" aria-hidden="true"></div>
-
-        <!-- Main content -->
+    <div id="loadingScreen" class="adv-loading-screen" role="status" aria-label="Loading ORYZED">
         <div class="adv-content-center">
-            <div class="adv-content-box">
-
-                <!-- Corner brackets (decorative) -->
-                <div class="adv-corner adv-corner-tl"></div>
-                <div class="adv-corner adv-corner-tr"></div>
-                <div class="adv-corner adv-corner-br"></div>
-                <div class="adv-corner adv-corner-bl"></div>
-
-                <!-- Logo morph / Typographic Loader -->
-                <div class="adv-logo-section">
-                    <div class="onto-loading-text">ORYZED</div>
-                </div>
-
-                <!-- Brand text -->
-                <!-- Brand text removed per request -->
-
-                <!-- State indicator -->
-                <div class="adv-state-indicator">
-                    <span class="adv-state-dot"></span>
-                    <span id="loadingStatus" class="adv-state-msg">Initializing System…</span>
-                </div>
-
-                <!-- Progress bar -->
-                <div class="adv-progress-track">
-                    <div id="loadingProgressBar" class="adv-progress-fill"></div>
-                </div>
-
-                <!-- Expanding rings -->
-                <div class="adv-rings-wrap" aria-hidden="true">
-                    <div class="adv-ring-dot"></div>
-                    <div class="adv-ring adv-ring-0"></div>
-                    <div class="adv-ring adv-ring-1"></div>
-                    <div class="adv-ring adv-ring-2"></div>
+            <!-- 1. Official Logo — centered in a premium brand container -->
+            <div class="adv-logo-section">
+                <div class="adv-logo-card">
+                    <img src="/static/Oryzed_Logo.png" class="adv-logo-img" alt="ORYZED Legal AI" />
                 </div>
             </div>
+
+            <!-- 2. Progress Bar — directly below the logo -->
+            <div class="adv-progress-track">
+                <div id="loadingProgressBar" class="adv-progress-fill"></div>
+            </div>
+
+            <!-- 3. Status Text — below the progress bar -->
+            <div class="adv-state-indicator">
+                <span class="adv-state-dot"></span>
+                <span id="loadingStatus" class="adv-state-msg">Initializing AI Engine...</span>
+            </div>
         </div>
-
-        <!-- Ambient particles container -->
-        <div id="advAmbientParticles" class="adv-ambient-particles" aria-hidden="true"></div>
-
-        <!-- Footer branding -->
-        <div class="adv-footer-brand">PLATFORM v2.0</div>
+        <div class="adv-footer-brand">Version 2.0</div>
     </div>
 
     <!-- ═══ HAMBURGER (always fixed, always visible) ═══ -->
@@ -149,7 +80,7 @@
             <div class="session-list-label">Recent Research</div>
             <div id="sidebarSessions" class="session-list" role="list"></div>
 
-            <div class="session-list-label" style="margin-top: 1.8rem; border-top: 1px solid rgba(74, 158, 220, 0.15); padding-top: 1rem;">Reference Library</div>
+            <div class="session-list-label" style="margin-top: 1.8rem; border-top: 1px solid var(--border-light); padding-top: 1rem;">Reference Library</div>
             <div id="sidebarDocuments" class="session-list" role="list" style="max-height: 250px; overflow-y: auto;">
                 <!-- Synced documents populated dynamically -->
             </div>
@@ -194,13 +125,27 @@
             <div class="hero-split">
                 <!-- Text side -->
                 <div class="hero-text">
-                    <div class="hero-badge reveal-item">Your 24/7 Legal Study Partner</div>
+                    <div class="hero-badge reveal-item">AI Powered Legal Intelligence</div>
                     <h1 id="heroHeadline" class="hero-title reveal-item">
-                        Intelligent Legal Research & Analysis
+                        Research Faster.<br>Analyze Smarter.<br>Argue Better.
                     </h1>
                     <p class="hero-sub reveal-item">
                         Elevate your practice with precision-engineered AI that synthesizes Indian jurisprudence, statutes, and precedents in seconds. Designed to empower your expertise, not diminish it.
                     </p>
+                    <div class="cta-trust-badges reveal-item" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; justify-content: flex-start;">
+                        <span class="trust-badge" style="background: var(--color-accent-tint); border: 1px solid var(--border-accent); padding: 0.4rem 0.8rem; border-radius: 30px; font-size: 0.75rem; color: var(--color-accent); display: flex; align-items: center; gap: 6px; font-weight: 600; box-shadow: none;">
+                            ✔ AI Powered
+                        </span>
+                        <span class="trust-badge" style="background: var(--color-accent-tint); border: 1px solid var(--border-accent); padding: 0.4rem 0.8rem; border-radius: 30px; font-size: 0.75rem; color: var(--color-accent); display: flex; align-items: center; gap: 6px; font-weight: 600; box-shadow: none;">
+                            ✔ Secure
+                        </span>
+                        <span class="trust-badge" style="background: var(--color-accent-tint); border: 1px solid var(--border-accent); padding: 0.4rem 0.8rem; border-radius: 30px; font-size: 0.75rem; color: var(--color-accent); display: flex; align-items: center; gap: 6px; font-weight: 600; box-shadow: none;">
+                            ✔ Indian Law Focused
+                        </span>
+                        <span class="trust-badge" style="background: var(--color-accent-tint); border: 1px solid var(--border-accent); padding: 0.4rem 0.8rem; border-radius: 30px; font-size: 0.75rem; color: var(--color-accent); display: flex; align-items: center; gap: 6px; font-weight: 600; box-shadow: none;">
+                            ✔ Instant Analysis
+                        </span>
+                    </div>
                     <div class="hero-stats reveal-item">
                         <div class="stat-item">
                             <span class="stat-num">10K+</span>
@@ -217,25 +162,21 @@
                             <span class="stat-label">Research Sessions</span>
                         </div>
                     </div>
-                    <button id="btnHeroEnterChat" class="btn-hero-cta reveal-item" aria-label="Begin research">
-                        Begin Research 
-                        <svg class="btn-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; margin-left:8px; vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                    </button>
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;" class="reveal-item">
+                        <button id="btnHeroEnterChat" class="btn-hero-cta" aria-label="Begin research">
+                            Start Research 
+                            <svg class="btn-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; margin-left:8px; vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </button>
+                        <button class="btn-hero-cta" style="background: var(--bg-card); color: var(--color-navy); border: 1px solid var(--color-navy);" onclick="document.getElementById('featuresSection').scrollIntoView({behavior:'smooth'});" aria-label="Learn features">
+                            Watch Demo
+                        </button>
+                    </div>
                 </div>
 
-                <div class="hero-canvas-wrap custom-hero-wrap" aria-hidden="true">
-                    <!-- Figma Branding Base -->
-                    <div class="figma-radial-bg" aria-hidden="true"></div>
-                    <div class="figma-glow-layer" aria-hidden="true">
-                        <div class="figma-glow-blob"></div>
+                <div class="custom-hero-wrap" aria-hidden="true">
+                    <div class="hero-mockup-card">
+                        <img src="/static/legal_hero_mockup.png" alt="Oryzed AI Legal Dashboard Mockup" class="hero-mockup-img">
                     </div>
-                    <div class="figma-scanlines" aria-hidden="true"></div>
-
-                    <video id="ljHeroVideo" class="lj-hero-video justice-lady-landing-video" autoplay loop muted playsinline>
-                        <source src="/static/Live_Oryzed.mp4" type="video/mp4">
-                    </video>
-                    <div class="hero-video-edge-fade"></div>
-                    <div class="hero-canvas-glow"></div>
                 </div>
             </div>
 
@@ -289,28 +230,25 @@
         <!-- ── SECTION 3: CTA ── -->
         <section id="ctaSection" class="land-section cta-section" aria-labelledby="ctaTitle">
             <div class="cta-inner">
-                <div class="cta-emblem reveal-item" aria-hidden="true">
-                    <video id="ljCtaVideo" class="lj-cta-video" autoplay loop muted playsinline>
-                        <source src="/static/lj_video.mp4" type="video/mp4">
-                    </video>
+                <div class="cta-emblem reveal-item" aria-hidden="true" style="color: var(--text-light); margin-bottom: 0.5rem;">
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                 </div>
                 <div class="cta-text">
                     <h2 id="ctaTitle" class="cta-headline reveal-item">Ready to Begin?</h2>
-                    <p class="cta-sub reveal-item" style="margin-bottom: 1rem; line-height:1.7;">Experience AI-powered legal intelligence engineered for the modern
-                        legal professional.</p>
+                    <p class="cta-sub reveal-item" style="margin-bottom: 1.5rem; line-height:1.7;">Experience AI-powered legal intelligence engineered for the modern legal professional.</p>
                     
                     <div class="cta-trust-badges reveal-item" style="display: flex; gap: 1.2rem; justify-content: center; margin-bottom: 2.5rem; flex-wrap: wrap;">
-                        <span class="trust-badge" style="background: rgba(79, 195, 247, 0.08); border: 1px solid rgba(79, 195, 247, 0.2); padding: 0.6rem 1.2rem; border-radius: 30px; font-size: 0.85rem; color: #4fc3f7; display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); letter-spacing: 0.02em; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" onmouseover="this.style.background='rgba(79, 195, 247, 0.15)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(79, 195, 247, 0.08)'; this.style.transform='translateY(0)';">
+                        <span class="trust-badge">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                             Bank-Grade Security
                         </span>
-                        <span class="trust-badge" style="background: rgba(79, 195, 247, 0.08); border: 1px solid rgba(79, 195, 247, 0.2); padding: 0.6rem 1.2rem; border-radius: 30px; font-size: 0.85rem; color: #4fc3f7; display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); letter-spacing: 0.02em; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" onmouseover="this.style.background='rgba(79, 195, 247, 0.15)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(79, 195, 247, 0.08)'; this.style.transform='translateY(0)';">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span class="trust-badge">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
                             Join 10,000+ Professionals
                         </span>
                     </div>
 
-                    <button id="btnCtaEnterChat" class="btn-cta-main reveal-item" style="box-shadow: 0 8px 32px rgba(79, 195, 247, 0.3); transition: all 0.3s ease; transform-origin: center;" onmouseover="this.style.boxShadow='0 12px 40px rgba(79, 195, 247, 0.5)'; this.style.transform='scale(1.05)';" onmouseout="this.style.boxShadow='0 8px 32px rgba(79, 195, 247, 0.3)'; this.style.transform='scale(1)';" aria-label="Start research">
+                    <button id="btnCtaEnterChat" class="btn-cta-main" aria-label="Start research">
                         <svg class="btn-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; margin-right:8px; vertical-align:middle; pointer-events: none;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                         Begin Research
                     </button>
@@ -318,23 +256,43 @@
             </div>
         </section>
 
+        <!-- ── FOOTER ── -->
+        <footer class="land-footer" role="contentinfo">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="/static/Oryzed_Logo.png" class="footer-logo" alt="Oryzed Logo">
+                    <p class="footer-desc">Intelligent AI Legal Research & Analysis Platform engineered for Indian law.</p>
+                </div>
+                <div class="footer-links-col">
+                    <h4>Platform</h4>
+                    <a href="#heroSection">Home</a>
+                    <a href="#featuresSection">Capabilities</a>
+                    <a href="/terms">Terms & Policy</a>
+                </div>
+                <div class="footer-links-col">
+                    <h4>Company</h4>
+                    <a href="/terms">Privacy Policy</a>
+                    <a href="/terms">AI Usage Terms</a>
+                    <a href="/terms">Grievance Officer</a>
+                </div>
+                <div class="footer-links-col">
+                    <h4>Contact</h4>
+                    <span class="footer-info">Email: support@oryzed.com</span>
+                    <span class="footer-info">Grievance: shreyanshukumar2004@gmail.com</span>
+                    <span class="footer-info">Bangalore, Karnataka, India</span>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 ORYZED. All rights reserved. Indian Law Focused.</p>
+            </div>
+        </footer>
+
     </div><!-- /#landingPage -->
 
     <!-- ═══════════════════════════════════════════════════════════
      CHAT SPA
      ═══════════════════════════════════════════════════════════ -->
     <div id="chatApp" class="chat-app" aria-hidden="true">
-        <!-- Figma Branding Base for Chat -->
-        <div class="figma-radial-bg" aria-hidden="true"></div>
-        <div class="figma-glow-layer" aria-hidden="true">
-            <div class="figma-glow-blob" style="opacity: 0.4;"></div>
-        </div>
-        <div class="figma-scanlines" aria-hidden="true" style="opacity: 0.15;"></div>
-
-        <!-- Lady Justice ghost background -->
-        <video id="ljChatVideo" class="chat-lj-video" autoplay loop muted playsinline aria-hidden="true">
-            <source src="/static/lj_video.mp4" type="video/mp4">
-        </video>
 
         <!-- Chat topbar -->
         <header class="chat-topbar" role="banner">
@@ -364,8 +322,7 @@
                 <!-- Empty state -->
                 <div id="emptyState" class="empty-state">
                     <h2 class="empty-title">Designed to Empower Your Expertise, Not Diminish It</h2>
-                    <p class="empty-sub">Ask about Indian law, case analysis, legal procedures, rights, or any legal
-                        matter.</p>
+                    <p class="empty-sub">Ask about Indian law, case analysis, legal procedures, rights, or any legal matter.</p>
                     <div class="prompt-chips" role="group" aria-label="Quick prompts">
                         <button class="prompt-chip" data-prompt="Explain legal rights">Explain legal rights</button>
                         <button class="prompt-chip" data-prompt="Summarize a case">Summarize a case</button>
@@ -384,7 +341,7 @@
             <div class="input-section">
                 <!-- File Attachment Pill -->
                 <div id="attachmentPill" class="attachment-pill" role="status" hidden>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                     <span id="attachmentName" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">file.pdf</span>
                     <button id="btnRemoveAttachment" style="background:none; border:none; color:inherit; margin-left:8px; cursor:pointer; padding:2px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -420,7 +377,7 @@
                         </button>
                     </div>
                 </div>
-                <p class="input-disclaimer">By using this LegalAI chatbot, you agree to our <a href="#" id="btnOpenTermsModal">Terms and Conditions and AI Usage Policy</a>. This system provides legal information only.</p>
+                <p class="input-disclaimer">By using this ORYZED chatbot, you agree to our <a href="#" id="btnOpenTermsModal">Terms and Conditions and AI Usage Policy</a>. This system provides legal information only.</p>
             </div>
         </div><!-- /.chat-body -->
 
@@ -541,150 +498,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-    /* FEATURES GRID OVERRIDE */
-    .features-grid {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-    }
-
-    /* ATTACHMENT PILL */
-    .attachment-pill {
-        position: absolute;
-        bottom: 100%;
-        left: 20px;
-        transform: translateY(-8px);
-        background: rgba(10, 28, 43, 0.85);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(79, 195, 247, 0.3);
-        color: var(--cyan-2, #7fd6ff);
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        display: inline-flex;
-        align-items: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        z-index: 10;
-        animation: floatUp 0.3s ease;
-    }
-    .attachment-pill[hidden] {
-        display: none !important;
-    }
-    .attachment-pill:hover {
-        border-color: rgba(79, 195, 247, 0.6);
-    }
-    /* TERMS MODAL STYLES */
-    .terms-modal-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9000;
-        background: rgba(2, 11, 24, 0.8);
-        backdrop-filter: blur(12px);
-        opacity: 0;
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: opacity var(--t-base) ease;
-    }
-    .terms-modal-overlay.active {
-        opacity: 1;
-        pointer-events: all;
-    }
-    .terms-modal-content {
-        background: linear-gradient(145deg, rgba(6, 32, 64, 0.95), rgba(4, 20, 40, 0.98));
-        border: 1px solid rgba(79, 195, 247, 0.25);
-        border-radius: var(--radius-card);
-        width: min(800px, 92vw);
-        max-height: 85vh;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-        transform: translateY(20px) scale(0.98);
-        transition: transform var(--t-base) var(--ease-spring);
-    }
-    .terms-modal-overlay.active .terms-modal-content {
-        transform: translateY(0) scale(1);
-    }
-    .btn-close-modal {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: var(--text-muted);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all var(--t-fast);
-        z-index: 10;
-        padding: 0;
-    }
-    .btn-close-modal:hover {
-        background: rgba(239, 83, 80, 0.15);
-        color: #ef5350;
-        border-color: rgba(239, 83, 80, 0.3);
-        transform: rotate(90deg);
-    }
-    .terms-title {
-        font-family: var(--font-brand, 'Inter', sans-serif);
-        font-size: 1.6rem;
-        color: var(--ice);
-        padding: 24px 30px 5px;
-        margin: 0;
-    }
-    .terms-date {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        padding: 0 30px 20px;
-        border-bottom: 1px solid rgba(74, 158, 220, 0.15);
-    }
-    .terms-scroll-area {
-        overflow-y: auto;
-        padding: 30px;
-        color: var(--text);
-        font-size: 0.95rem;
-        line-height: 1.7;
-    }
-    .terms-scroll-area::-webkit-scrollbar {
-        width: 6px;
-    }
-    .terms-scroll-area::-webkit-scrollbar-thumb {
-        background: rgba(79, 195, 247, 0.3);
-        border-radius: 4px;
-    }
-    .terms-scroll-area h3 {
-        color: var(--gold);
-        font-family: var(--font-brand, 'Inter', sans-serif);
-        margin: 2rem 0 1rem;
-        font-size: 1.25rem;
-    }
-    .terms-scroll-area h4 {
-        color: var(--ice);
-        font-weight: 600;
-        margin: 1.5rem 0 0.5rem;
-        font-size: 1.05rem;
-    }
-    .terms-scroll-area p, .terms-scroll-area ul {
-        margin-bottom: 1rem;
-        color: rgba(226, 244, 255, 0.85);
-    }
-    .terms-scroll-area ul {
-        padding-left: 1.5rem;
-    }
-    .terms-scroll-area li {
-        margin-bottom: 0.5rem;
-    }
-    .terms-scroll-area strong {
-        color: var(--text);
-        font-weight: 600;
-    }
-    </style>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
