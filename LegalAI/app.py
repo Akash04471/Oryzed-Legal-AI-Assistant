@@ -53,6 +53,11 @@ try:
 except ImportError:
     Image = None
 from werkzeug.utils import secure_filename
+from LegalAI.services.rag_service import generate_answer
+try:
+    from LegalAI.services.sync_service import sync_google_drive
+except ImportError:
+    sync_google_drive = None
 
 # Load environment variables
 load_dotenv()
@@ -1147,8 +1152,45 @@ def send_message(session_id):
             file = request.files.get("file")
             
             if file and file.filename:
-                extracted_text = extract_file_content(file)
-                user_message += f"\n\n[Attached File Content: {file.filename}]\n{extracted_text}"
+                filename = file.filename.lower()
+                
+                # Full RAG Pipeline for PDFs
+                if filename.endswith('.pdf'):
+                    try:
+                        file_bytes = file.read()
+                        
+                        from LegalAI.services.pdf_extractor_service import extract_text_by_page
+                        from LegalAI.services.chunking_service import chunk_document
+                        from LegalAI.services.embedding_service import get_embeddings_batch
+                        from LegalAI.services.qdrant_service import upsert_chunks
+                        
+                        pages_text = extract_text_by_page(file_bytes)
+                        
+                        if pages_text and any(p.strip() for p in pages_text):
+                            upload_date = datetime.now().isoformat()
+                            chunks = chunk_document(file.filename, pages_text, upload_date)
+                            
+                            if chunks:
+                                chunk_texts = [c["text"] for c in chunks]
+                                embeddings = get_embeddings_batch(chunk_texts)
+                                upsert_chunks(chunks, embeddings)
+                                
+                                user_message += f"\n\n[System Note: The user uploaded a document named '{file.filename}'. It has been processed, chunked, and indexed into the knowledge base. You can now retrieve its contents to answer questions.]"
+                            else:
+                                user_message += f"\n\n[System Note: The user uploaded a document named '{file.filename}' but it produced no readable chunks.]"
+                        else:
+                            user_message += f"\n\n[System Note: The user uploaded a document named '{file.filename}' but no text could be extracted (it may be a scanned image without OCR).]"
+                            
+                    except Exception as e:
+                        app.logger.error(f"Error processing uploaded PDF for RAG: {e}")
+                        # Fallback to direct injection if RAG pipeline fails
+                        file.seek(0)
+                        extracted_text = extract_file_content(file)
+                        user_message += f"\n\n[Attached File Content: {file.filename}]\n{extracted_text}"
+                else:
+                    # Non-PDF files (images, docx, etc.) use the direct text injection fallback
+                    extracted_text = extract_file_content(file)
+                    user_message += f"\n\n[Attached File Content: {file.filename}]\n{extracted_text}"
         else:
             data = request.get_json()
             user_message = data.get("message", "").strip() if data else ""
@@ -1167,7 +1209,6 @@ def send_message(session_id):
         history_text = get_chat_context(session_id, user_id)
 
         # Call our new RAG service to process retrieval and generation
-        from LegalAI.services.rag_service import generate_answer
         try:
             rag_result = generate_answer(user_message, history_text)
             ai_response = rag_result["response"]
@@ -1279,7 +1320,6 @@ def edit_message(session_id, message_id):
         history_text = get_chat_context(session_id, user_id)
 
         # Call RAG Service to generate answer
-        from LegalAI.services.rag_service import generate_answer
         try:
             rag_result = generate_answer(new_message, history_text)
             ai_response = rag_result["response"]

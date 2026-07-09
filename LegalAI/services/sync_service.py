@@ -77,13 +77,18 @@ def sync_google_drive(folder_id=None):
             file_bytes = download_file_bytes(file_id)
             
             # 2. Extract text page-by-page
-            pages_text = extract_text_by_page(file_bytes)
-            if not pages_text or all(not p.strip() for p in pages_text):
-                logger.warning(
-                    f"File '{file_name}' contains no readable text. This usually happens "
-                    f"if it is a scanned image PDF without an OCR text layer. Skipping."
-                )
-                stats["skipped"] += 1
+            try:
+                pages_text = extract_text_by_page(file_bytes)
+                if not pages_text or all(not p.strip() for p in pages_text):
+                    logger.warning(f"File '{file_name}' yielded no text even after OCR attempts. Skipping.")
+                    stats["skipped"] += 1
+                    continue
+                else:
+                    total_chars = sum(len(p) for p in pages_text)
+                    logger.info(f"Normal text extraction or OCR succeeded. Characters extracted: {total_chars}")
+            except Exception as extract_e:
+                logger.error(f"Failed to extract text from '{file_name}': {extract_e}")
+                stats["failed"] += 1
                 continue
                 
             # 3. Chunk text into 500-1000 token segments
@@ -92,15 +97,21 @@ def sync_google_drive(folder_id=None):
                 logger.warning(f"No chunks created for file '{file_name}'. Skipping.")
                 stats["skipped"] += 1
                 continue
+            
+            logger.info(f"Chunks created: {len(chunks)}")
                 
             # 4. Generate Embeddings
             chunk_texts = [c["text"] for c in chunks]
             embeddings = get_embeddings_batch(chunk_texts)
             
+            logger.info(f"Embeddings generated: {len(embeddings)}")
+            
             # 5. Store in Qdrant (remove old versions if updating)
             if is_updated:
                 delete_file_chunks(file_name)
             upsert_chunks(chunks, embeddings)
+            
+            logger.info("Document indexed successfully.")
             
             # 6. Update database sync status
             if is_new:

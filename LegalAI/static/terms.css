@@ -116,6 +116,9 @@ body {
     height: 38px;
     width: auto;
     object-fit: contain;
+    flex-shrink: 0;
+    image-rendering: auto;
+    vertical-align: middle;
 }
 
 .nav-links {

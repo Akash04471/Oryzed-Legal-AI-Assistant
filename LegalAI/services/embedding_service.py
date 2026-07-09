@@ -30,6 +30,11 @@ def _get_local_model():
     if _model_load_attempted:
         return None
     _model_load_attempted = True
+    
+    if os.environ.get("VERCEL"):
+        logger.warning("Vercel environment detected. Disabling local SentenceTransformer to prevent OOM kills and read-only filesystem errors. Falling back to API.")
+        return None
+        
     try:
         from sentence_transformers import SentenceTransformer
         logger.info(f"Loading local embedding model '{LOCAL_MODEL_NAME}' (first load may download ~130 MB)...")

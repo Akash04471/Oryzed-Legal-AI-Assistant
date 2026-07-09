@@ -8,25 +8,25 @@
 
 :root {
     /* Background */
-    --bg-primary: #FAF9F6;
-    --bg-card:    #FFFFFF;
+    --bg-primary: #040914;
+    --bg-card:    #0F172A;
 
     /* Brand */
-    --color-navy:       #0A2540;
-    --color-navy-light: #1E3E62;
-    --color-accent:       #2563EB;
-    --color-accent-hover: #1D4ED8;
+    --color-navy:       #E2E8F0;
+    --color-navy-light: #CBD5E1;
+    --color-accent:       #3B82F6;
+    --color-accent-hover: #60A5FA;
 
-    /* Text — all WCAG AA compliant on #FAF9F6 */
-    --text-primary:   #111827;   /* headings, labels     */
-    --text-secondary: #374151;   /* body, descriptions   */
-    --text-muted:     #4B5563;   /* helper text          */
-    --text-placeholder: #6B7280; /* input placeholders   */
-    --text-light:     #F9FAFB;   /* text on dark bg      */
+    /* Text */
+    --text-primary:   #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted:     #94A3B8;
+    --text-placeholder: #64748B;
+    --text-light:     #040914;
 
     /* Borders */
-    --border-light:  #E5E7EB;
-    --border-focus:  #2563EB;
+    --border-light:  #1E293B;
+    --border-focus:  #3B82F6;
 
     /* Typography */
     --font-heading: 'Audit Sans', 'Outfit', 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -85,14 +85,14 @@ body {
 
 /* ── TEXT SELECTION — readable on white card background ── */
 ::selection {
-    background: #BFD8FF;
-    color: #111827;
+    background: rgba(59, 130, 246, 0.3);
+    color: #F8FAFC;
     text-shadow: none;
 }
 
 ::-moz-selection {
-    background: #BFD8FF;
-    color: #111827;
+    background: rgba(59, 130, 246, 0.3);
+    color: #F8FAFC;
     text-shadow: none;
 }
 
@@ -174,11 +174,11 @@ body {
 
 /* ── STATUS BANNERS ── */
 .auth-error {
-    border: 1px solid #FCA5A5;
-    background: #FEF2F2;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    background: rgba(248, 113, 113, 0.1);
     border-radius: 10px;
     padding: 0.7rem 1rem;
-    color: #B91C1C;
+    color: #F87171;
     font-family: var(--font-body);
     font-size: 0.875rem;
     font-weight: 500;
@@ -188,11 +188,11 @@ body {
 }
 
 .auth-success {
-    border: 1px solid #86EFAC;
-    background: #F0FDF4;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    background: rgba(74, 222, 128, 0.1);
     border-radius: 10px;
     padding: 0.7rem 1rem;
-    color: #15803D;
+    color: #4ADE80;
     font-family: var(--font-body);
     font-size: 0.875rem;
     font-weight: 500;
@@ -243,8 +243,8 @@ body {
     width: 100%;
     border-radius: var(--radius-input);
     border: 1.5px solid var(--border-light);
-    background: #FFFFFF;           /* Always pure white — never off-white */
-    color: var(--text-primary);    /* #111827 — easily readable */
+    background: var(--bg-primary);
+    color: var(--text-primary);
     padding: 0.75rem 1rem;
     font-family: var(--font-body);
     font-size: 0.9rem;

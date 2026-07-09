@@ -284,29 +284,9 @@
 
     <!-- ══════════════════ HEADER ══════════════════ -->
     <header class="cosmic-header" role="banner">
-        <div class="header-left">
-            <svg class="scales-icon" id="scalesIcon" viewBox="0 0 200 200" width="40" height="40" aria-hidden="true">
-                <defs>
-                    <linearGradient id="headerScalesGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#c9a84c;stop-opacity:1"/>
-                        <stop offset="100%" style="stop-color:#4fc3f7;stop-opacity:1"/>
-                    </linearGradient>
-                </defs>
-                <g class="scales-pendulum">
-                    <line x1="40" y1="100" x2="160" y2="100" stroke="url(#headerScalesGrad)" stroke-width="4"/>
-                    <line x1="100" y1="60" x2="100" y2="100" stroke="url(#headerScalesGrad)" stroke-width="4"/>
-                    <circle cx="60" cy="100" r="4" fill="#c9a84c"/>
-                    <line x1="60" y1="100" x2="60" y2="125" stroke="#c9a84c" stroke-width="3"/>
-                    <rect x="42" y="125" width="36" height="20" fill="none" stroke="#c9a84c" stroke-width="3" rx="3"/>
-                    <circle cx="140" cy="100" r="4" fill="#4fc3f7"/>
-                    <line x1="140" y1="100" x2="140" y2="125" stroke="#4fc3f7" stroke-width="3"/>
-                    <rect x="122" y="125" width="36" height="20" fill="none" stroke="#4fc3f7" stroke-width="3" rx="3"/>
-                    <circle cx="100" cy="60" r="5" fill="url(#headerScalesGrad)"/>
-                </g>
-            </svg>
-        </div>
-
-        <h1 class="cosmic-title">LEGAL AI</h1>
+        <a href="/" class="nav-brand" aria-label="Home" style="text-decoration: none;">
+            <img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo">
+        </a>
 
         <div class="header-right">
             <button class="btn-new-consultation" id="btnNewConsultation" type="button">
@@ -331,12 +311,7 @@
             <!-- Sessions inserted dynamically -->
         </div>
 
-        <div class="sidebar-header" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
-            <h2 class="sidebar-title" style="font-size:0.75rem; letter-spacing:0.15em;">REFERENCE LIBRARY</h2>
-        </div>
-        <div class="sidebar-sessions" id="sidebarDocuments" role="list" aria-label="Reference materials" style="max-height: 250px; overflow-y: auto;">
-            <!-- Synced documents populated dynamically -->
-        </div>
+
     </aside>
 
     <!-- Mobile hamburger menu -->

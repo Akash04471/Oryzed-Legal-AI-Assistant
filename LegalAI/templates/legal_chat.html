@@ -80,10 +80,7 @@
             <div class="session-list-label">Recent Research</div>
             <div id="sidebarSessions" class="session-list" role="list"></div>
 
-            <div class="session-list-label" style="margin-top: 1.8rem; border-top: 1px solid var(--border-light); padding-top: 1rem;">Reference Library</div>
-            <div id="sidebarDocuments" class="session-list" role="list" style="max-height: 250px; overflow-y: auto;">
-                <!-- Synced documents populated dynamically -->
-            </div>
+
 
             <div class="sidebar-user-panel" aria-label="Signed in user details">
                 <div class="sidebar-user-avatar">{{ (username[:1] if username else 'U')|upper }}</div>
@@ -296,8 +293,8 @@
 
         <!-- Chat topbar -->
         <header class="chat-topbar" role="banner">
-            <a href="/" class="topbar-brand" aria-label="Home">
-                <img src="/static/Oryzed_Logo.png" class="topbar-logo-img" alt="Legal AI Logo">
+            <a href="/" class="nav-brand" aria-label="Home" style="text-decoration: none;">
+                <img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo">
             </a>
             <div class="topbar-right">
                 <a href="/profile" class="topbar-user-pill" style="text-decoration: none;">

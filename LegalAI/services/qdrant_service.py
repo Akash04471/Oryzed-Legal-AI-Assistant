@@ -28,8 +28,8 @@ def get_qdrant_client():
             _qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
         else:
             if os.environ.get("VERCEL"):
-                logger.info("Vercel environment detected. Running Qdrant client in-memory (unpersistent).")
-                _qdrant_client = QdrantClient(":memory:")
+                logger.warning("Vercel environment detected without QDRANT_URL. Local Qdrant engine causes OOM on Vercel. Disabling RAG.")
+                _qdrant_client = None
             else:
                 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 db_folder = "qdrant_local_test" if os.environ.get("TESTING") == "true" else "qdrant_local"
@@ -46,6 +46,8 @@ def init_collection():
     Checks if the collection exists and recreates it if a vector size mismatch is found.
     """
     client = get_qdrant_client()
+    if client is None:
+        return
     try:
         collections_response = client.get_collections()
         collections = [c.name for c in collections_response.collections]
@@ -93,6 +95,9 @@ def upsert_chunks(chunks, embeddings):
         raise ValueError("The number of chunks and embeddings must match.")
         
     client = get_qdrant_client()
+    if client is None:
+        logger.warning("Qdrant client is not available. Skipping upsert.")
+        return
     
     # Make sure collection exists
     init_collection()
@@ -144,6 +149,8 @@ def search_similar_chunks(query_vector, limit=5, file_filter=None):
         list of dict: Search matches containing payloads and scores.
     """
     client = get_qdrant_client()
+    if client is None:
+        return []
     
     query_filter = None
     if file_filter:

@@ -1605,3 +1605,20 @@ button:focus-visible,
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    text-decoration: none;
+    outline: none;
+}
+
+.land-logo-img {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+    image-rendering: auto;
+    vertical-align: middle;
+}
