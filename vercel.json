@@ -5,7 +5,7 @@
   ],
   "functions": {
     "api/index.py": {
-      "runtime": "vercel-python@0.1.1",
+      "runtime": "@vercel/python",
       "includeFiles": "LegalAI/**"
     }
   }
