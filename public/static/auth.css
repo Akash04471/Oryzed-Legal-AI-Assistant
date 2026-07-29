@@ -1,0 +1,372 @@
+/* ═══════════════════════════════════════════════════════════
+   ORYZED — PREMIUM OFF-WHITE AUTH STYLES
+   auth.css  ·  2026 Redesign
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── IMPORT PREMIUM TYPOGRAPHY ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    /* Background */
+    --bg-primary: #040914;
+    --bg-card:    #0F172A;
+
+    /* Brand */
+    --color-navy:       #E2E8F0;
+    --color-navy-light: #CBD5E1;
+    --color-accent:       #3B82F6;
+    --color-accent-hover: #60A5FA;
+
+    /* Text */
+    --text-primary:   #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted:     #94A3B8;
+    --text-placeholder: #64748B;
+    --text-light:     #040914;
+
+    /* Borders */
+    --border-light:  #1E293B;
+    --border-focus:  #3B82F6;
+
+    /* Typography */
+    --font-heading: 'Audit Sans', 'Outfit', 'Plus Jakarta Sans', 'Inter', sans-serif;
+    --font-body:    'Plus Jakarta Sans', 'Inter', sans-serif;
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px 0 rgba(0,0,0,0.04);
+    --shadow-lg:   0 20px 40px -8px rgba(10, 37, 64, 0.08),
+                   0  8px 16px -4px rgba(10, 37, 64, 0.04);
+    --shadow-soft: 0 4px 12px -2px rgba(0,0,0,0.08);
+
+    /* Radii */
+    --radius-card:  20px;
+    --radius-input: 12px;
+    --radius-btn:   12px;
+    --radius-pill:  99px;
+
+    /* Transitions */
+    --t-fast: 0.15s;
+    --t-base: 0.25s;
+}
+
+/* ── RESET ── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    overflow-x: hidden;
+}
+
+/* Hide any leftover canvas/orb elements from old design */
+#authBgCanvas,
+.auth-noise,
+.auth-orb {
+    display: none !important;
+}
+
+/* ── TEXT SELECTION — readable on white card background ── */
+::selection {
+    background: rgba(59, 130, 246, 0.3);
+    color: #F8FAFC;
+    text-shadow: none;
+}
+
+::-moz-selection {
+    background: rgba(59, 130, 246, 0.3);
+    color: #F8FAFC;
+    text-shadow: none;
+}
+
+/* ── PAGE WRAPPER ── */
+.auth-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem;
+}
+
+/* ── AUTH CARD ── */
+.auth-shell {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lg);
+    padding: 2.75rem 2.5rem 2.25rem;
+    position: relative;
+}
+
+/* Hide legacy grid overlay */
+.card-grid-overlay {
+    display: none !important;
+}
+
+/* ── LOGO ── */
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.75rem;
+}
+
+.brand-logo {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+/* ── HEADER TEXT ── */
+.auth-tagline {
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.auth-title {
+    font-family: var(--font-heading);
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--color-navy);
+    text-align: center;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+}
+
+.auth-title .accent {
+    color: var(--color-accent);
+}
+
+.auth-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* ── STATUS BANNERS ── */
+.auth-error {
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    background: rgba(248, 113, 113, 0.1);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    color: #F87171;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.auth-success {
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    background: rgba(74, 222, 128, 0.1);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    color: #4ADE80;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* ── FORM ── */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0; /* spacing handled by each field-group */
+}
+
+/* Each label + input pair sits in its own group */
+.auth-form .auth-label + .auth-input-wrap {
+    /* ensures label sits above, not overlapping */
+}
+
+/* ── LABELS ── */
+.auth-label {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-primary);  /* #111827 — high contrast on white card */
+    margin-bottom: 0.4rem;
+    margin-top: 1.1rem;          /* breathing room between fields */
+}
+
+/* First label in a stage has no top margin */
+.auth-label:first-child {
+    margin-top: 0;
+}
+
+/* ── INPUT WRAPPER ── */
+.auth-input-wrap {
+    position: relative;
+    width: 100%;
+}
+
+/* ── INPUT FIELD ── */
+.auth-input {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-input);
+    border: 1.5px solid var(--border-light);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color var(--t-fast) ease,
+                box-shadow var(--t-fast) ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.auth-input::placeholder {
+    color: var(--text-placeholder); /* #6B7280 — visible but clearly secondary */
+    font-weight: 400;
+}
+
+.auth-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* ── PRIMARY BUTTON ── */
+.auth-btn {
+    display: block;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.875rem 1.5rem;
+    background: var(--color-navy);
+    color: var(--text-light);
+    border: 1.5px solid var(--color-navy);
+    border-radius: var(--radius-btn);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: background var(--t-fast) ease,
+                border-color var(--t-fast) ease,
+                transform var(--t-fast) ease,
+                box-shadow var(--t-fast) ease;
+}
+
+.auth-btn:hover {
+    background: var(--color-navy-light);
+    border-color: var(--color-navy-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+}
+
+.auth-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* ── SUPPORTING / ALT TEXT ── */
+.auth-alt {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--text-secondary);  /* #374151 — dark enough on white card */
+    text-align: center;
+    margin-top: 1.1rem;
+    line-height: 1.5;
+}
+
+.auth-alt a {
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--t-fast) ease;
+}
+
+.auth-alt a:hover {
+    color: var(--color-accent-hover);
+}
+
+/* ── BACK / SECONDARY BUTTON IN OTP STAGE ── */
+button.auth-alt {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 1rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--t-fast) ease;
+}
+
+button.auth-alt:hover {
+    color: var(--color-navy);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 520px) {
+    .auth-shell {
+        padding: 2rem 1.5rem 1.75rem;
+        border-radius: 16px;
+    }
+
+    .auth-title {
+        font-size: 1.6rem;
+    }
+
+    .auth-subtitle {
+        font-size: 0.84rem;
+    }
+}
+
+@media (max-width: 380px) {
+    body {
+        padding: 1rem 0.75rem;
+    }
+
+    .auth-shell {
+        padding: 1.75rem 1.25rem;
+    }
+}
