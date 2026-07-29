@@ -936,6 +936,17 @@ def get_chat_context(session_id: str, user_id: int, limit=10):
 def index():
     return render_template('legal_chat.html', username=session.get("username", ""))
 
+@app.route("/debug-env")
+def debug_env():
+    env_vars = {k: str(v) for k, v in request.environ.items()}
+    return jsonify({
+        "path_info": request.path,
+        "full_path": request.full_path,
+        "url": request.url,
+        "headers": dict(request.headers),
+        "environ": env_vars
+    })
+
 
 @app.route("/terms")
 def terms_and_conditions():
