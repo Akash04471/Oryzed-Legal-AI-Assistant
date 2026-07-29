@@ -8,14 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/static/auth.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}" />
 </head>
 
 <body>
     <div class="auth-stage">
         <main class="auth-shell" role="main">
             <div class="brand">
-                <img src="/static/Oryzed_Logo.png" alt="Oryzed Logo" class="brand-logo" />
+                <img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" alt="Oryzed Logo" class="brand-logo" />
             </div>
 
             <div class="auth-tagline">Create Isolated Workspace</div>
@@ -68,7 +68,7 @@
         </main>
     </div>
 
-    <script src="/static/auth.js" defer></script>
+    <script src="{{ url_for('static', filename='auth.js') }}" defer></script>
 </body>
 
 </html>

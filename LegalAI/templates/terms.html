@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="/static/vendor/fontawesome/all.min.css?v=20260319" />
-    <link rel="stylesheet" href="/static/legal_style_final.css" />
-    <link rel="stylesheet" href="/static/terms.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/all.min.css') }}?v=20260319" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_final.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='terms.css') }}" />
 </head>
 
 <body>
@@ -26,7 +26,7 @@
     <!-- ═══ EXQUISITE FLOATING NAVBAR ═══ -->
     <nav class="land-nav" aria-label="Main navigation">
         <div class="nav-brand">
-            <a href="/"><img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo"></a>
+            <a href="/"><img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="land-logo-img" alt="Legal AI Logo"></a>
         </div>
         <div class="nav-links exquisite-nav">
             <a href="/#heroSection" class="nav-link">Home</a>
@@ -197,7 +197,7 @@
         <i class="fas fa-arrow-up" aria-hidden="true"></i>
     </button>
 
-    <script src="/static/terms.js" defer></script>
+    <script src="{{ url_for('static', filename='terms.js') }}" defer></script>
 </body>
 
 </html>

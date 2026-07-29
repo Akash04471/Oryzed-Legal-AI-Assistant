@@ -16,18 +16,18 @@
         rel="stylesheet" />
 
     <!-- Icons -->
-    <link rel="stylesheet" href="/static/vendor/fontawesome/all.min.css?v=20260319" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/all.min.css') }}?v=20260319" />
 
     <!-- App Styles -->
-    <link rel="stylesheet" href="/static/legal_style_final.css" />
-    <link rel="stylesheet" href="/static/css/legal_animations.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_final.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/legal_animations.css') }}" />
 
     <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" defer></script>
 
     <!-- Markdown Renderer + DOMPurify -->
-    <script src="/static/vendor/marked.min.js" defer></script>
-    <script src="/static/vendor/purify.min.js" defer></script>
+    <script src="{{ url_for('static', filename='vendor/marked.min.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='vendor/purify.min.js') }}" defer></script>
 </head>
 
 <body>
@@ -38,7 +38,7 @@
             <!-- 1. Official Logo — centered in a premium brand container -->
             <div class="adv-logo-section">
                 <div class="adv-logo-card">
-                    <img src="/static/Oryzed_Logo.png" class="adv-logo-img" alt="ORYZED Legal AI" />
+                    <img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="adv-logo-img" alt="ORYZED Legal AI" />
                 </div>
             </div>
 
@@ -69,7 +69,7 @@
     <aside id="chatSidebar" class="chat-sidebar" aria-label="Research history" hidden>
         <div class="sidebar-inner">
             <div class="sidebar-header">
-                <img src="/static/Oryzed_Logo.png" class="sidebar-logo-img" alt="Legal AI Logo">
+                <img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="sidebar-logo-img" alt="Legal AI Logo">
             </div>
 
             <button id="btnNewConsultation" class="btn-new-chat">
@@ -100,7 +100,7 @@
         <!-- Landing nav -->
         <nav class="land-nav" aria-label="Main navigation">
             <div class="nav-brand">
-                <img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo">
+                <img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="land-logo-img" alt="Legal AI Logo">
             </div>
             <div class="nav-links exquisite-nav">
                 <a href="#heroSection" class="nav-link">Home</a>
@@ -172,7 +172,7 @@
 
                 <div class="custom-hero-wrap" aria-hidden="true">
                     <div class="hero-mockup-card">
-                        <img src="/static/legal_hero_mockup.png" alt="Oryzed AI Legal Dashboard Mockup" class="hero-mockup-img">
+                        <img src="{{ url_for('static', filename='legal_hero_mockup.png') }}" alt="Oryzed AI Legal Dashboard Mockup" class="hero-mockup-img">
                     </div>
                 </div>
             </div>
@@ -257,7 +257,7 @@
         <footer class="land-footer" role="contentinfo">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="/static/Oryzed_Logo.png" class="footer-logo" alt="Oryzed Logo">
+                    <img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="footer-logo" alt="Oryzed Logo">
                     <p class="footer-desc">Intelligent AI Legal Research & Analysis Platform engineered for Indian law.</p>
                 </div>
                 <div class="footer-links-col">
@@ -294,7 +294,7 @@
         <!-- Chat topbar -->
         <header class="chat-topbar" role="banner">
             <a href="/" class="nav-brand" aria-label="Home" style="text-decoration: none;">
-                <img src="/static/Oryzed_Logo.png" class="land-logo-img" alt="Legal AI Logo">
+                <img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="land-logo-img" alt="Legal AI Logo">
             </a>
             <div class="topbar-right">
                 <a href="/profile" class="topbar-user-pill" style="text-decoration: none;">
@@ -533,7 +533,7 @@
     </script>
 
     <!-- App JS -->
-    <script src="/static/legal_app.js" defer></script>
+    <script src="{{ url_for('static', filename='legal_app.js') }}" defer></script>
 </body>
 
 </html>
