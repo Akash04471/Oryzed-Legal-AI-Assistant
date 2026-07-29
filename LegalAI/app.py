@@ -59,6 +59,9 @@ try:
 except ImportError:
     sync_google_drive = None
 
+# Load environment variables
+load_dotenv()
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(
