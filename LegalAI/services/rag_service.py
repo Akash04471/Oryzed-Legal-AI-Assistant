@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import logging
 from groq import Groq
 from LegalAI.services.embedding_service import get_embedding
@@ -8,7 +9,7 @@ from LegalAI.services.qdrant_service import search_similar_chunks
 logger = logging.getLogger(__name__)
 
 # Minimum similarity score (cosine distance) to consider search results relevant
-SIMILARITY_THRESHOLD = 0.55
+SIMILARITY_THRESHOLD = 0.50
 
 # Default Groq model (high-quality and free tier available)
 DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant"
@@ -24,69 +25,110 @@ def get_groq_client():
     if _groq_client is None:
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
-            # Fall back to GROQ_API_KEY in other formats or raise error
             raise ValueError("GROQ_API_KEY environment variable is not configured in .env")
         _groq_client = Groq(api_key=api_key)
     return _groq_client
 
 
+def expand_query(user_message, model_name):
+    """
+    Uses the LLM to generate alternative formulations of the user's query 
+    to improve retrieval recall (Multi-Query Retrieval).
+    """
+    prompt = f"""You are a legal AI assistant. Your task is to generate 3 alternative versions of the user's legal query to maximize document retrieval in a vector database.
+Include abbreviations, full names, and synonymous legal terms. 
+Output ONLY a JSON list of strings. Do not include markdown formatting or explanations.
+
+User Query: "{user_message}"
+"""
+    try:
+        client = get_groq_client()
+        chat_completion = client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+        content = chat_completion.choices[0].message.content.strip()
+        # Clean potential markdown markdown blocks
+        if content.startswith("```json"):
+            content = content[7:-3]
+        elif content.startswith("```"):
+            content = content[3:-3]
+            
+        expanded = json.loads(content)
+        if isinstance(expanded, list):
+            # Include original query
+            return [user_message] + expanded[:3]
+    except Exception as e:
+        logger.error(f"Query expansion failed: {e}")
+        
+    return [user_message]
+
+
 def generate_answer(user_message, chat_history_context=None):
     """
-    Coordinates semantic retrieval and answer generation using Groq LLM.
-    Supports a fallback path if no relevant documents are found in Qdrant.
-    
-    Args:
-        user_message (str): The current user query.
-        chat_history_context (str): Formatted conversation history.
-        
-    Returns:
-        dict: A dictionary containing 'response', 'confidence_score', and 'sources'.
+    Coordinates semantic retrieval, multi-query expansion, and answer generation.
     """
-    # Use config from env if present, otherwise default
     model_name = os.environ.get("GROQ_MODEL") or DEFAULT_GROQ_MODEL
     
-    # 1. Generate Query Embedding (now powered by free Hugging Face model)
-    try:
-        query_vector = get_embedding(user_message)
-    except Exception as e:
-        logger.error(f"Failed to generate query embedding: {e}")
-        # If embedding fails, fallback directly to general knowledge
-        return _generate_fallback_answer(user_message, chat_history_context, model_name, 0.0)
-
-    # 2. Retrieve top chunks from Qdrant
-    results = search_similar_chunks(query_vector, limit=5)
-    
-    # Determine best similarity score
-    best_score = results[0]["score"] if results else 0.0
-    confidence_percentage = min(100, max(0, int(best_score * 100)))
-    
-    # Check if query is non-legal.
-    # Refusal check to keep LegalAI aligned with legal-only limits.
+    # Check if query is non-legal
     if _is_non_legal_query(user_message):
         return {
             "response": (
                 "I apologize, but I am a specialized Legal AI Assistant. "
                 "I can only provide assistance with legal matters, legal research, case analysis, "
-                "statutory interpretation, and legal consultation. Please ask me a legal question."
+                "statutory interpretation, and legal consultation."
             ),
             "confidence_score": 1.0,
             "sources": []
         }
+        
+    logger.info(f"Original Query: {user_message}")
 
-    # 3. Handle Fallback if below threshold
-    if not results or best_score < SIMILARITY_THRESHOLD:
-        logger.info(f"Top match similarity {best_score:.4f} is below threshold {SIMILARITY_THRESHOLD}. Using general knowledge fallback.")
+    # 1. Expand Query
+    queries = expand_query(user_message, model_name)
+    logger.info(f"Expanded Queries: {queries}")
+
+    all_results = []
+    # 2. Retrieve for all queries (Multi-Query)
+    for q in queries:
+        try:
+            q_vec = get_embedding(q)
+            # Retrieve Top-10 per query to ensure high recall before re-ranking
+            hits = search_similar_chunks(q_vec, limit=10)
+            all_results.extend(hits)
+        except Exception as e:
+            logger.error(f"Failed to generate embedding for query '{q}': {e}")
+            
+    # 3. Deduplicate and Sort (Simulated Re-ranking by highest score)
+    unique_chunks = {}
+    for hit in all_results:
+        # Use text as unique key to prevent duplicates
+        key = hit["text"]
+        if key not in unique_chunks or hit["score"] > unique_chunks[key]["score"]:
+            unique_chunks[key] = hit
+            
+    sorted_results = sorted(unique_chunks.values(), key=lambda x: x["score"], reverse=True)
+    
+    # Take top 8 unique chunks
+    top_results = sorted_results[:8]
+    
+    best_score = top_results[0]["score"] if top_results else 0.0
+    
+    logger.info(f"Retrieval complete. Top similarity score: {best_score:.4f}. Retrieved {len(top_results)} unique chunks.")
+    
+    # 4. Handle Fallback if below threshold
+    if not top_results or best_score < SIMILARITY_THRESHOLD:
+        logger.info(f"Score {best_score:.4f} is below threshold {SIMILARITY_THRESHOLD}. Triggering general knowledge fallback.")
         return _generate_fallback_answer(user_message, chat_history_context, model_name, best_score)
         
-    # 4. Process high-confidence context RAG path
-    logger.info(f"Top match similarity {best_score:.4f} exceeds threshold. Generating answer from retrieved context.")
+    logger.info("Generating answer from retrieved Qdrant context.")
     
-    # Gather chunks and sources
+    # 5. Gather context
     context_parts = []
     sources = []
     
-    for hit in results:
-        # Avoid duplicate source references
+    for hit in top_results:
         source_ref = f"{hit['file_name']} (Page {hit['start_page']})"
         if hit["end_page"] != hit["start_page"]:
             source_ref = f"{hit['file_name']} (Pages {hit['start_page']}-{hit['end_page']})"
@@ -96,7 +138,6 @@ def generate_answer(user_message, chat_history_context=None):
             f"Content: {hit['text']}\n"
         )
         
-        # Add to structured source metadata list
         source_meta = {
             "file_name": hit["file_name"],
             "start_page": hit["start_page"],
@@ -109,31 +150,27 @@ def generate_answer(user_message, chat_history_context=None):
     context_text = "\n".join(context_parts)
     
     system_prompt = f"""You are LegalAI, an expert legal assistant with deep knowledge of Indian law.
-Your task is to answer the user's legal question using the provided Context. If the Context does not contain enough detailed facts to answer the question completely, you MUST seamlessly supplement it with your own extensive legal knowledge to deliver a complete, professional, high-quality response.
+Your task is to answer the user's legal question using the provided Context.
 
 STRICT RULES:
-1. You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters. Any deviation is strictly prohibited.
-2. Do NOT mention words like "Context", "provided documents", "database search", or reference any search mechanism in your output. Present your response directly and authority-first.
-3. Every response MUST strictly follow this order:
+1. You are EXCLUSIVELY a Legal AI Assistant. 
+2. Evaluate the provided Context. If the context is HIGHLY relevant to the user's specific query (e.g. it contains the exact case name, act, or legal principle requested), you MUST use this structured format:
    (1) Introduction
-   (2) Facts of the Case (if applicable)
+   (2) Facts of the Case
    (3) Legal Issues
-   (4) Applicable Laws (Acts, Sections, Articles, Rules)
+   (4) Applicable Laws
    (5) Step-by-Step Legal Analysis
-   (6) Judicial Precedents with proper citations
+   (6) Judicial Precedents
    (7) Conclusion/Judgment
-   (8) Legal Consultation including remedies, risks, and strategy.
-4. CITE YOUR SOURCES. Cite legal provisions, acts, and landmark cases naturally (e.g. Section 302 of the IPC, or landmark cases). Do NOT include backend file names (such as '.pdf' or file path formats) in your response text. Cite the actual legal act, code, book name, or case title instead.
+3. IF THE CONTEXT IS IRRELEVANT (e.g. the user asks about "Satya v Teja Singh" but the context only contains "Balwan Singh"), DO NOT use the structured format above. Instead, write a standard paragraph explaining that the specific details are not in the database, and provide your general legal knowledge on the topic. Never write empty sections like "Facts: Context does not contain sufficient information".
+4. CITE YOUR SOURCES explicitly using the Document Source metadata provided in the context (e.g. "As stated in DocumentName.pdf on Page 4...").
 """
 
-    messages = [
-        {"role": "system", "content": system_prompt}
-    ]
+    messages = [{"role": "system", "content": system_prompt}]
     
-    # Inject chat history if available
     if chat_history_context:
-        messages.append({"role": "user", "content": f"Previous conversation for context:\n{chat_history_context}"})
-        messages.append({"role": "assistant", "content": "Understood. I will maintain this context and answer the next question using only the retrieved documents."})
+        messages.append({"role": "user", "content": f"Previous conversation:\n{chat_history_context}"})
+        messages.append({"role": "assistant", "content": "I will maintain this context."})
         
     messages.append({
         "role": "user", 
@@ -141,8 +178,8 @@ STRICT RULES:
     })
     
     try:
-        groq_client = get_groq_client()
-        chat_completion = groq_client.chat.completions.create(
+        client = get_groq_client()
+        chat_completion = client.chat.completions.create(
             model=model_name,
             messages=messages,
             temperature=0.1
@@ -161,41 +198,34 @@ STRICT RULES:
 
 def _generate_fallback_answer(user_message, chat_history_context, model_name, score):
     """
-    Generates a structured answer using the model's general knowledge as an alternative fallback.
+    Generates a general knowledge fallback answer, WITHOUT forcing a rigid format
+    that causes hallucinated sections like "Facts of the Case".
     """
+    logger.info("Executing graceful fallback logic.")
     system_prompt = """You are LegalAI, an expert legal assistant with deep knowledge of Indian law.
-Please answer the query to the best of your legal knowledge as a professional Legal AI Assistant.
+You must answer the query using your general legal knowledge base because specific documents were not found.
 
 STRICT RULES:
-1. You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters. Any deviation is strictly prohibited.
-2. Do NOT mention that "no relevant documents were found", "context is missing", "the database was checked", "the source is unavailable", or make any other references to backend search failures. Simply deliver a direct, comprehensive legal analysis.
-3. Every response MUST strictly follow this order:
-   (1) Introduction
-   (2) Facts of the Case (if applicable)
-   (3) Legal Issues
-   (4) Applicable Laws (Acts, Sections, Articles, Rules)
-   (5) Step-by-Step Legal Analysis
-   (6) Judicial Precedents with proper citations
-   (7) Conclusion/Judgment
-   (8) Legal Consultation including remedies, risks, and strategy.
+1. Provide a professional, direct legal analysis based on established Indian Law, IPC, CrPC, etc.
+2. DO NOT use rigid headers like "Facts of the Case" unless the user explicitly provided facts in their prompt.
+3. If the user asks about a specific obscure case you do not know, DO NOT hallucinate facts. Gracefully state that you do not have the specific facts for that case, and provide the general legal principles that apply.
+4. Do NOT mention "database", "context", "search failed", or "Qdrant".
 """
 
-    messages = [
-        {"role": "system", "content": system_prompt}
-    ]
+    messages = [{"role": "system", "content": system_prompt}]
     
     if chat_history_context:
-        messages.append({"role": "user", "content": f"Previous conversation for context:\n{chat_history_context}"})
-        messages.append({"role": "assistant", "content": "Understood. I will answer the next query using my general legal knowledge base."})
+        messages.append({"role": "user", "content": f"Previous conversation:\n{chat_history_context}"})
+        messages.append({"role": "assistant", "content": "I will maintain this context."})
         
     messages.append({
         "role": "user",
-        "content": f"Question: {user_message}\n\nProvide the structured legal analysis:"
+        "content": f"Question: {user_message}\n\nProvide your professional legal analysis:"
     })
     
     try:
-        groq_client = get_groq_client()
-        chat_completion = groq_client.chat.completions.create(
+        client = get_groq_client()
+        chat_completion = client.chat.completions.create(
             model=model_name,
             messages=messages,
             temperature=0.1
@@ -210,23 +240,14 @@ STRICT RULES:
     except Exception as e:
         logger.error(f"Fallback answer generation failed: {e}")
         return {
-            "response": (
-                "## Error\n"
-                "I encountered an error while formulating the response. Please check your credentials or try again later."
-            ),
+            "response": "## Error\nI encountered an error while formulating the response.",
             "confidence_score": 0.0,
             "sources": []
         }
 
 
 def _is_non_legal_query(message):
-    """
-    Checks if a query is non-legal.
-    Keeps the AI restricted to the legal domain.
-    """
     msg = message.lower().strip()
-    
-    # List of keywords that are strictly legal
     legal_keywords = [
         "law", "section", "ipc", "crpc", "bnss", "iea", "bsa", "bjs", "constitution", "court",
         "judge", "attorney", "advocate", "legal", "statute", "precedent", "fir", "police",
@@ -237,19 +258,15 @@ def _is_non_legal_query(message):
         "nyaya", "sakshya", "will", "probate", "deed", "power of attorney", "homicide", "theft",
         "fraud", "defamation", "tort", "damages", "injunction", "evidence", "witness"
     ]
-    
-    # Check if any legal keyword is present (using word boundaries to avoid matching substrings like "writ" in "write")
     for keyword in legal_keywords:
         pattern = r'\b' + re.escape(keyword) + r'\b'
         if re.search(pattern, msg):
             return False
-        
-    # Check for general conversational queries
+            
     greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how are you"]
     if any(msg == g for g in greetings):
         return False
         
-    # If no legal keywords are found and it looks like technology, science, sports, etc., block it.
     non_legal_topics = [
         "how to code", "write a python", "javascript", "movie", "song", "sports", "cricket",
         "football", "recipe", "cook", "science", "physics", "chemistry", "mathematics",
@@ -258,5 +275,4 @@ def _is_non_legal_query(message):
     if any(topic in msg for topic in non_legal_topics):
         return True
         
-    # Default to letting the LLM handle it, but perform a light heuristic check.
     return False
