@@ -20,5 +20,5 @@ pymupdf
 qdrant-client
 openai
 tiktoken
-easyocr
+#easyocr
  
