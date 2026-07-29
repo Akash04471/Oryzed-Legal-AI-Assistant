@@ -343,7 +343,7 @@
     /* ─── Landing → Chat transition ─── */
     function enterChat() {
         if (!W.isUserLoggedIn) {
-            W.location.href = '/signup';
+            W.location.href = '/login';
             return;
         }
         const landing = document.getElementById('landingPage');

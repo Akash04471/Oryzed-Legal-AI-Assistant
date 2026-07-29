@@ -55,7 +55,7 @@
 /* Apply Audit Sans custom font stack helper */
 @font-face {
     font-family: 'Audit Sans';
-    src: local('Audit Sans'), local('Outfit'), sans-serif;
+    src: local('Outfit'), local('Plus Jakarta Sans'), sans-serif;
 }
 
 /* ── RESET ── */
