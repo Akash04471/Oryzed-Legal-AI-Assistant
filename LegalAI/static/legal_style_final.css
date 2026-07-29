@@ -1065,14 +1065,15 @@ th {
 
 /* Footer Styles */
 .land-footer {
-    background: var(--color-navy);
-    color: var(--text-light);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
     width: 100%;
     padding: 4rem 2rem 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border-light);
     position: relative;
     z-index: 10;
 }
+
 
 .footer-grid {
     max-width: 1120px;
