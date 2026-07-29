@@ -11,20 +11,15 @@ class VercelPathMiddleware:
         self.app = app
 
     def __call__(self, environ, start_response):
-        # Prefer original path from Vercel headers if present
-        raw_path = (
-            environ.get('HTTP_X_FORWARDED_PATH')
-            or environ.get('HTTP_X_MATCHED_PATH')
-            or environ.get('PATH_INFO', '')
-        )
+        path = environ.get('PATH_INFO', '')
         
-        # Clean up Vercel serverless entry point prefix
-        if raw_path.startswith('/api/index.py'):
-            raw_path = raw_path[len('/api/index.py'):]
-        elif raw_path.startswith('/api/index'):
-            raw_path = raw_path[len('/api/index'):]
+        # Strip Vercel's serverless function rewrite prefix if present
+        if path.startswith('/api/index.py'):
+            path = path[len('/api/index.py'):]
+        elif path.startswith('/api/index'):
+            path = path[len('/api/index'):]
             
-        environ['PATH_INFO'] = raw_path if raw_path else '/'
+        environ['PATH_INFO'] = path if path else '/'
         return self.app(environ, start_response)
 
 app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
