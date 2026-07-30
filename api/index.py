@@ -1,6 +1,6 @@
 import sys
 import os
-from urllib.parse import urlparse
+from urllib.parse import parse_qs
 
 # Add parent directory to sys.path so LegalAI module can be imported
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,23 +12,17 @@ class VercelPathMiddleware:
         self.app = app
 
     def __call__(self, environ, start_response):
-        # Retrieve the original client request path passed by Vercel edge proxy
-        raw_path = (
-            environ.get('HTTP_X_FORWARDED_PATH')
-            or environ.get('HTTP_X_VERCEL_FORWARDED_PATH')
-            or environ.get('HTTP_X_FORWARDED_URI')
-            or environ.get('PATH_INFO', '/')
-        )
+        query_string = environ.get('QUERY_STRING', '')
+        qs_params = parse_qs(query_string)
 
-        path = urlparse(raw_path).path
+        if '__path__' in qs_params and qs_params['__path__']:
+            path = qs_params['__path__'][0]
+            if not path.startswith('/'):
+                path = '/' + path
+            environ['PATH_INFO'] = path
+        elif environ.get('PATH_INFO', '').startswith('/api/index'):
+            environ['PATH_INFO'] = '/'
 
-        # Strip Vercel function invocation path if present
-        if path.startswith('/api/index.py'):
-            path = path[len('/api/index.py'):]
-        elif path.startswith('/api/index'):
-            path = path[len('/api/index'):]
-
-        environ['PATH_INFO'] = path if path else '/'
         return self.app(environ, start_response)
 
 app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
