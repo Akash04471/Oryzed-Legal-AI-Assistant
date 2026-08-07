@@ -71,7 +71,13 @@ app = Flask(
     template_folder=os.path.join(BASE_DIR, 'templates')
 )
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here")
+secret_key = os.environ.get("SECRET_KEY")
+if not secret_key:
+    raise RuntimeError("SECRET_KEY environment variable is not set.")
+app.secret_key = secret_key
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Database setup
 import tempfile
@@ -1401,11 +1407,19 @@ init_db()
 # Secure admin synchronization route (suited for Vercel Cron or manual triggers)
 @app.route("/api/admin/sync", methods=["POST"])
 def admin_sync():
-    # Authenticate via request header or parameter token
-    req_token = request.headers.get("Authorization") or request.args.get("token")
     env_token = os.environ.get("ADMIN_SYNC_TOKEN")
-    
-    if env_token and req_token != f"Bearer {env_token}" and req_token != env_token:
+    if not env_token:
+        return jsonify({"error": "Sync is disabled"}), 503
+
+    auth_header = request.headers.get("Authorization")
+    query_token = request.args.get("token")
+
+    token_matches = (
+        (auth_header and (auth_header == f"Bearer {env_token}" or auth_header == env_token)) or
+        (query_token and query_token == env_token)
+    )
+
+    if not token_matches:
         return jsonify({"error": "Unauthorized sync request"}), 401
         
     folder_id = request.args.get("folder_id")
@@ -1472,4 +1486,5 @@ if __name__ == "__main__":
     start_local_sync_scheduler()
     # use_reloader=False prevents watchdog from detecting model cache file writes
     # and restarting the server mid-operation. Use manual restart for code changes.
-    app.run(host="0.0.0.0", port=8080, debug=True, use_reloader=False)
+    debug_mode = os.environ.get("FLASK_DEBUG", "").lower() in ("1", "true", "t", "yes")
+    app.run(host="0.0.0.0", port=8080, debug=debug_mode, use_reloader=False)
