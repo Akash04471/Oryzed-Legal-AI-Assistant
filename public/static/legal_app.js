@@ -690,6 +690,7 @@
             sa('btnNewConsultationTop', newSession);
             sa('btnNavEnterChat', enterChat);
             sa('btnHeroEnterChat', enterChat);
+            sa('btnWatchDemo', enterChatDemo);
             sa('btnCtaEnterChat', enterChat);
             sa('btnSend', sendMessage);
             sa('newMsgPill', () => scrollBot(true));
