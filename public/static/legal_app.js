@@ -362,6 +362,23 @@
         }, 630);
     }
 
+    function enterChatDemo() {
+    const landing = document.getElementById('landingPage');
+    const chat = document.getElementById('chatApp');
+    if (!landing || !chat) return;
+    landing.style.transition = 'opacity 0.6s ease';
+    landing.style.opacity = '0';
+    document.body.classList.add('lock-scroll');
+    setTimeout(() => {
+        landing.style.display = 'none';
+        chat.removeAttribute('hidden');
+        chat.removeAttribute('aria-hidden');
+        requestAnimationFrame(() => chat.classList.add('visible'));
+        App.loadSessions();
+        App.newSession();
+    }, 630);
+}
+
     /* ─── Custom Cursor ─── */
     function initCursor() {
         return; // Disabled for clean, natural system cursor
@@ -685,7 +702,7 @@
         }
 
         function wireEvents() {
-            const sa = (id, fn) => { const el = g(id); if (el) el.addEventListener('click', fn); };
+            const sa = (id, fn) => { const el = g(id); if (el && typeof fn === 'function') el.addEventListener('click', fn); };
             sa('btnNewConsultation', newSession);
             sa('btnNewConsultationTop', newSession);
             sa('btnNavEnterChat', enterChat);

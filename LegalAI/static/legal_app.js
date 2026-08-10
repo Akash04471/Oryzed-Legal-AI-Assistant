@@ -702,7 +702,7 @@
         }
 
         function wireEvents() {
-            const sa = (id, fn) => { const el = g(id); if (el) el.addEventListener('click', fn); };
+            const sa = (id, fn) => { const el = g(id); if (el && typeof fn === 'function') el.addEventListener('click', fn); };
             sa('btnNewConsultation', newSession);
             sa('btnNewConsultationTop', newSession);
             sa('btnNavEnterChat', enterChat);
