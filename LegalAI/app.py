@@ -1409,7 +1409,10 @@ def profile():
 #                  RUN APP
 # ------------------------------------------------------
 
-init_db()
+try:
+    init_db()
+except Exception as _db_init_err:
+    app.logger.warning(f"Database initialization deferred or skipped: {_db_init_err}")
 # AI agent will be lazy-loaded on demand
 
 

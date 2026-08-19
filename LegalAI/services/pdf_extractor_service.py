@@ -1,7 +1,15 @@
 import logging
 import re
-import fitz  # PyMuPDF
-import numpy as np
+
+try:
+    import fitz  # PyMuPDF
+except ImportError:
+    fitz = None
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +41,19 @@ def extract_text_by_page(file_bytes):
     """
     pages_text = []
     
+    if fitz is None:
+        logger.warning("PyMuPDF (fitz) is unavailable. Using PyPDF2 fallback.")
+        try:
+            import io
+            import PyPDF2
+            reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+            for page in reader.pages:
+                pages_text.append(clean_text(page.extract_text() or ""))
+            return pages_text
+        except Exception as e:
+            logger.error(f"PyPDF2 extraction fallback failed: {e}")
+            return []
+
     try:
         # Open PDF from in-memory bytes stream
         doc = fitz.open(stream=file_bytes, filetype="pdf")

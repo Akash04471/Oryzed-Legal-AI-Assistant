@@ -1,11 +1,34 @@
 import sys
 import os
+import logging
 from urllib.parse import parse_qs
 
-# Add parent directory to sys.path so LegalAI module can be imported
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Set VERCEL environment flag
+os.environ["VERCEL"] = "1"
 
-from LegalAI.app import app
+# Add parent directory to sys.path so LegalAI module can be imported
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+init_error = None
+try:
+    from LegalAI.app import app
+except Exception as err:
+    init_error = str(err)
+    logging.error(f"Error initializing LegalAI.app in Vercel handler: {err}", exc_info=True)
+    from flask import Flask, jsonify
+    app = Flask(__name__)
+
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    def error_handler(path):
+        return jsonify({
+            "error": "Application Initialization Failed on Vercel",
+            "details": init_error,
+            "hint": "Check Vercel Environment Variables and requirements."
+        }), 500
+
 
 class VercelPathMiddleware:
     def __init__(self, app):
