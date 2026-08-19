@@ -17,7 +17,10 @@ from dotenv import load_dotenv
 from agno.agent import Agent
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.models.groq import Groq
-from agno.models.google import Gemini
+try:
+    from agno.models.google import Gemini
+except ImportError:
+    Gemini = None
 # Python standard libraries
 import os
 import sqlite3

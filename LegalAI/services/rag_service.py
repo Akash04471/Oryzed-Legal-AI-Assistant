@@ -3,7 +3,10 @@ import re
 import json
 import logging
 from agno.agent import Agent
-from agno.models.google import Gemini
+try:
+    from agno.models.google import Gemini
+except ImportError:
+    Gemini = None
 try:
     from groq import Groq
 except ImportError:
