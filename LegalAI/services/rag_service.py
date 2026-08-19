@@ -2,7 +2,13 @@ import os
 import re
 import json
 import logging
-from groq import Groq
+from agno.agent import Agent
+from agno.models.google import Gemini
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
+
 from LegalAI.services.embedding_service import get_embedding
 from LegalAI.services.qdrant_service import search_similar_chunks
 
@@ -11,26 +17,56 @@ logger = logging.getLogger(__name__)
 # Minimum similarity score (cosine distance) to consider search results relevant
 SIMILARITY_THRESHOLD = 0.50
 
-# Default Groq model (high-quality and free tier available)
-DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant"
+# Default model configuration
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 
-_groq_client = None
 
-def get_groq_client():
+def _run_llm_completion(prompt: str, system_prompt: str = None, temperature: float = 0.1) -> str:
     """
-    Initializes and returns the Groq client.
-    Resolves GROQ_API_KEY from the environment.
+    Executes completion using Google Gemini / Gemma API or Groq depending on available API key format.
     """
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY")
-        if not api_key:
-            raise ValueError("GROQ_API_KEY environment variable is not configured in .env")
-        _groq_client = Groq(api_key=api_key)
-    return _groq_client
+    api_key = (
+        os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
+        or os.environ.get("GEMMA_API_KEY")
+        or os.environ.get("GROQ_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or ""
+    ).strip()
+
+    if not api_key:
+        raise ValueError("No valid API Key (GEMINI_API_KEY / GEMMA_API_KEY / GROQ_API_KEY) found in environment.")
+
+    # If using Groq native key format
+    if api_key.startswith("gsk_") and Groq:
+        client = Groq(api_key=api_key)
+        model_name = os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL)
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            temperature=temperature
+        )
+        return completion.choices[0].message.content
+
+    # Default to Google Gemini / Gemma API
+    os.environ["GEMINI_API_KEY"] = api_key
+    os.environ["GOOGLE_API_KEY"] = api_key
+    model_name = os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
+    
+    agent = Agent(
+        model=Gemini(id=model_name, api_key=api_key),
+        description=system_prompt if system_prompt else "You are a specialized Legal AI Assistant."
+    )
+    response = agent.run(prompt)
+    return str(response.content)
 
 
-def expand_query(user_message, model_name):
+def expand_query(user_message: str) -> list:
     """
     Uses the LLM to generate alternative formulations of the user's query 
     to improve retrieval recall (Multi-Query Retrieval).
@@ -42,14 +78,8 @@ Output ONLY a JSON list of strings. Do not include markdown formatting or explan
 User Query: "{user_message}"
 """
     try:
-        client = get_groq_client()
-        chat_completion = client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2
-        )
-        content = chat_completion.choices[0].message.content.strip()
-        # Clean potential markdown markdown blocks
+        content = _run_llm_completion(prompt, temperature=0.2).strip()
+        # Clean potential markdown blocks
         if content.startswith("```json"):
             content = content[7:-3]
         elif content.startswith("```"):
@@ -65,12 +95,10 @@ User Query: "{user_message}"
     return [user_message]
 
 
-def generate_answer(user_message, chat_history_context=None):
+def generate_answer(user_message: str, chat_history_context: str = None) -> dict:
     """
     Coordinates semantic retrieval, multi-query expansion, and answer generation.
     """
-    model_name = os.environ.get("GROQ_MODEL") or DEFAULT_GROQ_MODEL
-    
     # Check if query is non-legal
     if _is_non_legal_query(user_message):
         return {
@@ -86,7 +114,7 @@ def generate_answer(user_message, chat_history_context=None):
     logger.info(f"Original Query: {user_message}")
 
     # 1. Expand Query
-    queries = expand_query(user_message, model_name)
+    queries = expand_query(user_message)
     logger.info(f"Expanded Queries: {queries}")
 
     all_results = []
@@ -120,7 +148,7 @@ def generate_answer(user_message, chat_history_context=None):
     # 4. Handle Fallback if below threshold
     if not top_results or best_score < SIMILARITY_THRESHOLD:
         logger.info(f"Score {best_score:.4f} is below threshold {SIMILARITY_THRESHOLD}. Triggering general knowledge fallback.")
-        return _generate_fallback_answer(user_message, chat_history_context, model_name, best_score)
+        return _generate_fallback_answer(user_message, chat_history_context, best_score)
         
     logger.info("Generating answer from retrieved Qdrant context.")
     
@@ -129,10 +157,6 @@ def generate_answer(user_message, chat_history_context=None):
     sources = []
     
     for hit in top_results:
-        source_ref = f"{hit['file_name']} (Page {hit['start_page']})"
-        if hit["end_page"] != hit["start_page"]:
-            source_ref = f"{hit['file_name']} (Pages {hit['start_page']}-{hit['end_page']})"
-            
         context_parts.append(
             f"--- Document Source: {hit['file_name']} | Pages: {hit['start_page']}-{hit['end_page']} ---\n"
             f"Content: {hit['text']}\n"
@@ -149,7 +173,7 @@ def generate_answer(user_message, chat_history_context=None):
             
     context_text = "\n".join(context_parts)
     
-    system_prompt = f"""You are LegalAI, an expert legal assistant with deep knowledge of Indian law.
+    system_prompt = """You are LegalAI, an expert legal assistant with deep knowledge of Indian law.
 Your task is to answer the user's legal question using the provided Context.
 
 STRICT RULES:
@@ -162,29 +186,16 @@ STRICT RULES:
    (5) Step-by-Step Legal Analysis
    (6) Judicial Precedents
    (7) Conclusion/Judgment
-3. IF THE CONTEXT IS IRRELEVANT (e.g. the user asks about "Satya v Teja Singh" but the context only contains "Balwan Singh"), DO NOT use the structured format above. Instead, write a standard paragraph explaining that the specific details are not in the database, and provide your general legal knowledge on the topic. Never write empty sections like "Facts: Context does not contain sufficient information".
-4. CITE YOUR SOURCES explicitly using the Document Source metadata provided in the context (e.g. "As stated in DocumentName.pdf on Page 4...").
+3. IF THE CONTEXT IS IRRELEVANT, write a standard paragraph explaining that the specific details are not in the database, and provide your general legal knowledge on the topic.
+4. CITE YOUR SOURCES explicitly using the Document Source metadata provided in the context.
 """
 
-    messages = [{"role": "system", "content": system_prompt}]
-    
+    prompt = f"Context:\n{context_text}\n\nQuestion: {user_message}\n\nProvide the structured legal analysis:"
     if chat_history_context:
-        messages.append({"role": "user", "content": f"Previous conversation:\n{chat_history_context}"})
-        messages.append({"role": "assistant", "content": "I will maintain this context."})
-        
-    messages.append({
-        "role": "user", 
-        "content": f"Context:\n{context_text}\n\nQuestion: {user_message}\n\nProvide the structured legal analysis:"
-    })
-    
+        prompt = f"Previous conversation context:\n{chat_history_context}\n\n" + prompt
+
     try:
-        client = get_groq_client()
-        chat_completion = client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            temperature=0.1
-        )
-        ai_response = chat_completion.choices[0].message.content
+        ai_response = _run_llm_completion(prompt=prompt, system_prompt=system_prompt, temperature=0.1)
         
         return {
             "response": ai_response,
@@ -192,45 +203,31 @@ STRICT RULES:
             "sources": sources
         }
     except Exception as e:
-        logger.error(f"Error generating Groq response: {e}")
-        return _generate_fallback_answer(user_message, chat_history_context, model_name, best_score)
+        logger.error(f"Error generating LLM response: {e}")
+        return _generate_fallback_answer(user_message, chat_history_context, best_score)
 
 
-def _generate_fallback_answer(user_message, chat_history_context, model_name, score):
+def _generate_fallback_answer(user_message: str, chat_history_context: str, score: float) -> dict:
     """
-    Generates a general knowledge fallback answer, WITHOUT forcing a rigid format
-    that causes hallucinated sections like "Facts of the Case".
+    Generates a general knowledge fallback answer using the LLM.
     """
     logger.info("Executing graceful fallback logic.")
     system_prompt = """You are LegalAI, an expert legal assistant with deep knowledge of Indian law.
 You must answer the query using your general legal knowledge base because specific documents were not found.
 
 STRICT RULES:
-1. Provide a professional, direct legal analysis based on established Indian Law, IPC, CrPC, etc.
+1. Provide a professional, direct legal analysis based on established Indian Law, IPC, CrPC, BNSS, etc.
 2. DO NOT use rigid headers like "Facts of the Case" unless the user explicitly provided facts in their prompt.
 3. If the user asks about a specific obscure case you do not know, DO NOT hallucinate facts. Gracefully state that you do not have the specific facts for that case, and provide the general legal principles that apply.
 4. Do NOT mention "database", "context", "search failed", or "Qdrant".
 """
 
-    messages = [{"role": "system", "content": system_prompt}]
-    
+    prompt = f"Question: {user_message}\n\nProvide your professional legal analysis:"
     if chat_history_context:
-        messages.append({"role": "user", "content": f"Previous conversation:\n{chat_history_context}"})
-        messages.append({"role": "assistant", "content": "I will maintain this context."})
-        
-    messages.append({
-        "role": "user",
-        "content": f"Question: {user_message}\n\nProvide your professional legal analysis:"
-    })
-    
+        prompt = f"Previous conversation context:\n{chat_history_context}\n\n" + prompt
+
     try:
-        client = get_groq_client()
-        chat_completion = client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            temperature=0.1
-        )
-        ai_response = chat_completion.choices[0].message.content
+        ai_response = _run_llm_completion(prompt=prompt, system_prompt=system_prompt, temperature=0.1)
         
         return {
             "response": ai_response,
@@ -246,7 +243,7 @@ STRICT RULES:
         }
 
 
-def _is_non_legal_query(message):
+def _is_non_legal_query(message: str) -> bool:
     msg = message.lower().strip()
     legal_keywords = [
         "law", "section", "ipc", "crpc", "bnss", "iea", "bsa", "bjs", "constitution", "court",

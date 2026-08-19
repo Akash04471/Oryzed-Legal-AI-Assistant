@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from agno.agent import Agent
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.models.groq import Groq
+from agno.models.google import Gemini
 # Python standard libraries
 import os
 import sqlite3
@@ -121,10 +122,17 @@ def _get_llm_api_key() -> str:
     """
     Resolve provider key in a backward-compatible way.
 
-    Primary key is GROQ_API_KEY. If missing, OPENAI_API_KEY is accepted as
-    fallback because some environments only define a generic provider key.
+    Primary key is GROQ_API_KEY or GEMMA_API_KEY / GEMINI_API_KEY / GOOGLE_API_KEY.
+    If missing, OPENAI_API_KEY is accepted as fallback.
     """
-    return (os.environ.get("GROQ_API_KEY") or os.environ.get("OPENAI_API_KEY") or "").strip()
+    return (
+        os.environ.get("GROQ_API_KEY")
+        or os.environ.get("GEMMA_API_KEY")
+        or os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or ""
+    ).strip()
 
 
 def _looks_like_auth_error(raw_error: str) -> bool:
@@ -862,18 +870,25 @@ def init_legal_agent() -> None:
     api_key = _get_llm_api_key()
     if not api_key:
         LLM_READY = False
-        LLM_INIT_ERROR = "Missing GROQ_API_KEY (or OPENAI_API_KEY fallback)."
+        LLM_INIT_ERROR = "Missing GEMINI_API_KEY / GEMMA_API_KEY (or GROQ_API_KEY fallback)."
         legal_agent = None
         app.logger.warning("LLM disabled: %s", LLM_INIT_ERROR)
         return
 
-    # Normalize to GROQ_API_KEY so agno/groq model reads expected env var.
-    os.environ["GROQ_API_KEY"] = api_key
-
     try:
-        model_name = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
+        if api_key.startswith("gsk_"):
+            os.environ["GROQ_API_KEY"] = api_key
+            model_name = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+            model_instance = Groq(id=model_name, temperature=0.1)
+        else:
+            os.environ["GEMINI_API_KEY"] = api_key
+            os.environ["GOOGLE_API_KEY"] = api_key
+            os.environ["GEMMA_API_KEY"] = api_key
+            model_name = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+            model_instance = Gemini(id=model_name, api_key=api_key)
+
         legal_agent = Agent(
-            model=Groq(id=model_name, temperature=0.1),
+            model=model_instance,
             description=LEGAL_SYSTEM_PROMPT,
             instructions=[
                 "🚨 CRITICAL: You are EXCLUSIVELY a Legal AI Assistant. You MUST ONLY respond to legal questions and legal matters. Any deviation is strictly prohibited.",
