@@ -950,6 +950,10 @@ def get_chat_context(session_id: str, user_id: int, limit=10):
 #                  ROUTES
 # ------------------------------------------------------
 
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
+
 @app.route("/")
 def index():
     return render_template('legal_chat.html', username=session.get("username", ""))
