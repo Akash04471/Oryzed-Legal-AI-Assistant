@@ -9,6 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
+from urllib.parse import parse_qs
 from LegalAI.app import app as flask_app
 
 class VercelWSGIMiddleware:
@@ -19,19 +20,36 @@ class VercelWSGIMiddleware:
         # 1. Reset SCRIPT_NAME so Flask resolves paths from root '/'
         environ['SCRIPT_NAME'] = ''
         
-        # 2. Get true request PATH_INFO passed to serverless function
-        path = environ.get('PATH_INFO', '/')
+        # 2. Extract target path from __path parameter forwarded by vercel.json rewrite
+        query_string = environ.get('QUERY_STRING', '')
+        qs = parse_qs(query_string)
         
-        # Strip Vercel function filename if prepended by router
-        if path.startswith('/api/index.py'):
-            path = path[13:] or '/'
-        elif path.startswith('/api/index'):
-            path = path[10:] or '/'
+        target_path = None
+        if '__path' in qs and qs['__path']:
+            target_path = qs['__path'][0]
             
-        if not path.startswith('/'):
-            path = '/' + path
+        # Fallback to headers if __path parameter is not present
+        if not target_path or target_path == '/':
+            target_path = (
+                environ.get('HTTP_X_MATCHED_PATH')
+                or environ.get('HTTP_X_FORWARDED_URI')
+                or environ.get('PATH_INFO', '/')
+            )
             
-        environ['PATH_INFO'] = path
+        # Strip function filename if prepended
+        if target_path.startswith('/api/index.py'):
+            target_path = target_path[13:] or '/'
+        elif target_path.startswith('/api/index'):
+            target_path = target_path[10:] or '/'
+            
+        # Clean double slashes e.g. //login -> /login
+        while target_path.startswith('//'):
+            target_path = target_path[1:]
+            
+        if not target_path.startswith('/'):
+            target_path = '/' + target_path
+            
+        environ['PATH_INFO'] = target_path
         return self.app(environ, start_response)
 
 app = VercelWSGIMiddleware(flask_app)
