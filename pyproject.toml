@@ -29,6 +29,3 @@ dependencies = [
     "openai",
     "tiktoken"
 ]
-
-[tool.vercel]
-entrypoint = "api/index.py"
