@@ -950,6 +950,14 @@ def get_chat_context(session_id: str, user_id: int, limit=10):
 #                  ROUTES
 # ------------------------------------------------------
 
+@app.errorhandler(404)
+def not_found_fallback(e):
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Resource not found"}), 404
+    # For page routes, render main application UI cleanly
+    return render_template('legal_chat.html', username=session.get("username", ""))
+
 @app.route("/favicon.ico")
 def favicon():
     return "", 204

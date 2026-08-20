@@ -16,15 +16,30 @@ class VercelWSGIMiddleware:
         self.app = app
 
     def __call__(self, environ, start_response):
-        path = environ.get('PATH_INFO', '')
-        
-        # Fix PATH_INFO if Vercel prepends function path
-        if path.startswith('/api/index.py'):
-            environ['PATH_INFO'] = path[13:] or '/'
-        elif path.startswith('/api/index'):
-            environ['PATH_INFO'] = path[10:] or '/'
-            
+        # 1. Reset SCRIPT_NAME so Werkzeug doesn't prefix /api/index.py
         environ['SCRIPT_NAME'] = ''
+        
+        # 2. Extract true requested URL path
+        raw_path = (
+            environ.get('HTTP_X_FORWARDED_URI')
+            or environ.get('REQUEST_URI')
+            or environ.get('RAW_URI')
+            or environ.get('PATH_INFO', '/')
+        )
+        
+        # Strip query string
+        clean_path = raw_path.split('?')[0]
+        
+        # Strip Vercel function prefix if present
+        if clean_path.startswith('/api/index.py'):
+            clean_path = clean_path[13:] or '/'
+        elif clean_path.startswith('/api/index'):
+            clean_path = clean_path[10:] or '/'
+            
+        if not clean_path.startswith('/'):
+            clean_path = '/' + clean_path
+            
+        environ['PATH_INFO'] = clean_path
         return self.app(environ, start_response)
 
 app = VercelWSGIMiddleware(flask_app)
