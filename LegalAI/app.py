@@ -1472,4 +1472,4 @@ if __name__ == "__main__":
     start_local_sync_scheduler()
     # use_reloader=False prevents watchdog from detecting model cache file writes
     # and restarting the server mid-operation. Use manual restart for code changes.
-    app.run(host="0.0.0.0", port=8080, debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=8080, debug=True, use_reloader=False)
