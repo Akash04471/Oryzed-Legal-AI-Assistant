@@ -644,6 +644,16 @@ def api_login_required(view_func):
 
     return wrapped
 
+def get_current_identity():
+    """
+    Returns (is_guest, user_id).
+    Guests are identified purely by the absence of a logged-in session —
+    no database row is ever created for a guest.
+    """
+    if "user_id" in session:
+        return False, session["user_id"]
+    return True, None
+
 
 def ensure_session_exists(session_id: str, user_id: int) -> bool:
     conn = get_db_connection()
@@ -1111,18 +1121,22 @@ def health():
     })
 
 @app.route("/api/new_session", methods=["POST"])
-@api_login_required
 def new_session():
-    session_id = create_new_session(session["user_id"])
+    is_guest, user_id = get_current_identity()
+    if is_guest:
+        session["guest_history"] = []
+        return jsonify({"session_id": "guest", "status": "success"})
+    session_id = create_new_session(user_id)
     return jsonify({"session_id": session_id, "status": "success"})
 
 @app.route("/api/sessions", methods=["GET"])
-@api_login_required
 def get_sessions_route():
-    return jsonify({"sessions": get_chat_sessions(session["user_id"])})
+    is_guest, user_id = get_current_identity()
+    if is_guest:
+        return jsonify({"sessions": []})
+    return jsonify({"sessions": get_chat_sessions(user_id)})
 
 @app.route("/api/documents", methods=["GET"])
-@api_login_required
 def get_synced_documents():
     try:
         conn = get_db_connection()
@@ -1139,19 +1153,20 @@ def get_synced_documents():
         return jsonify({"status": "error", "message": "Failed to retrieve documents"}), 500
 
 @app.route("/api/chat/<session_id>", methods=["GET"])
-@api_login_required
 def get_chat(session_id):
-    history = get_chat_history(session_id, session["user_id"])
+    is_guest, user_id = get_current_identity()
+    if is_guest:
+        return jsonify({"history": session.get("guest_history", [])})
+    history = get_chat_history(session_id, user_id)
     if history is None:
         return jsonify({"error": "Session not found"}), 404
     return jsonify({"history": history})
 
 @app.route("/api/chat/<session_id>/message", methods=["POST"])
-@api_login_required
 def send_message(session_id):
+    is_guest, user_id = get_current_identity()
     try:
-        user_id = session["user_id"]
-        if not ensure_session_exists(session_id, user_id):
+        if not is_guest and not ensure_session_exists(session_id, user_id):
             return jsonify({"error": "Session not found"}), 404
 
         if request.content_type and request.content_type.startswith('multipart/form-data'):
@@ -1205,15 +1220,19 @@ def send_message(session_id):
         if not user_message:
             return jsonify({"error": "Message cannot be empty"}), 400
 
-        chat_history = get_chat_history(session_id, user_id) or []
-
-        if len(chat_history) == 0:
-            update_session_title(session_id, user_message, user_id)
-
-        save_message(session_id, "user", user_message, user_id)
-
-        # Get conversation context (last 10 msgs)
-        history_text = get_chat_context(session_id, user_id)
+        if is_guest:
+            guest_history = session.get("guest_history", [])
+            history_text = "\n".join(
+                f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}"
+                for m in guest_history[-10:]
+            )
+            guest_history.append({"role": "user", "content": user_message})
+        else:
+            chat_history = get_chat_history(session_id, user_id) or []
+            if len(chat_history) == 0:
+                update_session_title(session_id, user_message, user_id)
+            save_message(session_id, "user", user_message, user_id)
+            history_text = get_chat_context(session_id, user_id)
 
         # Call our new RAG service to process retrieval and generation
         try:
@@ -1227,7 +1246,11 @@ def send_message(session_id):
             confidence_score = 0.0
             sources = []
 
-        save_message(session_id, "assistant", ai_response, user_id)
+        if is_guest:
+            guest_history.append({"role": "assistant", "content": ai_response})
+            session["guest_history"] = guest_history[-20:]  # cap so the cookie doesn't grow unbounded
+        else:
+            save_message(session_id, "assistant", ai_response, user_id)
 
         return jsonify({
             "response": ai_response,
