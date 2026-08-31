@@ -95,18 +95,22 @@
                     screen.style.transform = 'scale(1.04)';
                     setTimeout(() => {
                         screen.style.display = 'none';
-                        if (W.isUserLoggedIn) {
-                            /* Reveal chat page directly */
-                            const chat = document.getElementById('chatApp');
-                            if (chat) {
-                                chat.removeAttribute('hidden');
-                                chat.removeAttribute('aria-hidden');
-                                requestAnimationFrame(() => chat.classList.add('visible'));
-                            }
-                            document.body.classList.add('lock-scroll');
-                            App.loadSessions();
-                            App.newSession();
-                        } else {
+                       const skipAutoChat = new URLSearchParams(W.location.search).get('home') === '1';
+                       if (skipAutoChat && W.history && W.history.replaceState) {
+                        W.history.replaceState({}, '', '/');
+                    }
+                    if (W.isUserLoggedIn && !skipAutoChat) {
+                        /* Reveal chat page directly */
+                        const chat = document.getElementById('chatApp');
+                        if (chat) {
+                            chat.removeAttribute('hidden');
+                            chat.removeAttribute('aria-hidden');
+                            requestAnimationFrame(() => chat.classList.add('visible'));
+                        }
+                        document.body.classList.add('lock-scroll');
+                        App.loadSessions();
+                        App.newSession();
+                    } else {
                             /* Reveal landing page */
                             if (landingPage) {
                                 landingPage.style.transition = 'opacity 0.6s ease-out, visibility 0s';
