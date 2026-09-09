@@ -83,23 +83,33 @@ Accessing legal guidance in India is plagued by high cost, procedural ambiguity,
 
 ## 🛠️ Technical Rationale & Tradeoffs
 
-### 1. Backend: Python (Flask)
+### 1. Frontend: HTML5, Vanilla CSS3 & JavaScript (ES6+)
+- **Why**: Eliminates heavy framework overhead (React/Vue bundle sizes), ensuring instant initial page loads and seamless DOM manipulation for custom UI features like streaming markdown responses, interactive modal dialogs, and custom CSS glassmorphic aesthetics.
+- **Key Libraries & Tools**:
+  - **HTML5 (Jinja2 Templates)**: Semantic page structure integrated with Flask templating.
+  - **Vanilla CSS3**: Custom design tokens, Judicial Cosmos dark theme (`#04060f`), glassmorphism backdrop filters, custom CSS keyframe animations (Scales of Justice loader), and CSS Grid / Flexbox responsive layouts.
+  - **Vanilla JavaScript (ES6+)**: Event-driven client architecture handling stateful chat turns, dynamic SSE streaming rendering, inline edit history truncation, modal management, and AJAX/Fetch API interactions.
+  - **Marked.js**: Fast client-side Markdown parsing into HTML for AI legal responses.
+  - **DOMPurify**: Strict sanitization of client-rendered HTML to prevent Cross-Site Scripting (XSS) vulnerabilities.
+  - **FontAwesome 6**: High-fidelity iconography across sidebars, buttons, and status indicators.
+
+### 2. Backend: Python (Flask)
 - **Why**: Native compatibility with the Python AI/ML ecosystem (`sentence-transformers`, `qdrant-client`, `agno`, `PyPDF2`, `BeautifulSoup4`).
 - **Tradeoff**: Flask is single-threaded by default compared to Node.js async event loops. Mitigated using WSGI/Gunicorn workers in production and offloading embedding model loading to application startup (`preload_model()`).
 
-### 2. LLM Engine: Groq API (LLaMA 3.3 70B / LLaMA 3.1 8B)
+### 3. LLM Engine: Groq API (LLaMA 3.3 70B / LLaMA 3.1 8B)
 - **Why**: Ultra-fast inference speeds (~300+ tokens/sec on Groq LPU infrastructure), function calling support, zero-rate-limit friction during development, and strict adherence to system instructions.
 - **Tradeoff**: Cloud API dependency. Mitigated by building an offline fallback responder (`_fallback_legal_response()`) that serves pre-computed procedural advice for critical legal queries if LLM keys expire or fail.
 
-### 3. Vector Database: Qdrant
+### 4. Vector Database: Qdrant
 - **Why**: Superior HNSW vector indexing performance, dual support for local embedded disk storage (`qdrant_local`) and Qdrant Cloud, payload metadata filtering by file name/page range, and simple API integration.
 - **Tradeoff**: In-memory/disk footprints on serverless platforms (e.g., Vercel) can cause Out-Of-Memory (OOM) errors. Mitigated by auto-detecting the Vercel runtime environment and dynamically routing queries to cloud instances or graceful general-knowledge fallbacks.
 
-### 4. Embedding Model: `sentence-transformers/all-MiniLM-L6-v2`
+### 5. Embedding Model: `sentence-transformers/all-MiniLM-L6-v2`
 - **Why**: Produces 384-dimensional dense vectors with low CPU latency (~25-30ms per text chunk), making it ideal for real-time semantic search without paid embedding API fees (e.g., OpenAI text-embedding-3).
 - **Tradeoff**: Shorter context window (256 tokens per chunk). Solved by implementing recursive chunking with 50-token overlaps to preserve semantic continuity across paragraph boundaries.
 
-### 5. Database Strategy: SQLite (Local) + PostgreSQL (Cloud)
+### 6. Database Strategy: SQLite (Local) + PostgreSQL (Cloud)
 - **Why**: SQLite requires zero setup for local development. `psycopg2` adapter abstraction (`adapt_sql()`) translates SQLite `?` placeholders to PostgreSQL `%s` and handles `AUTOINCREMENT` $\rightarrow$ `SERIAL` conversions automatically.
 
 ---
