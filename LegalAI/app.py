@@ -410,6 +410,24 @@ def create_user(username: str, email: str, password: str):
     finally:
         conn.close()
 
+def update_user_password(email: str, new_password: str) -> bool:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    password_hash = generate_password_hash(new_password)
+    try:
+        cursor.execute(
+            adapt_sql("UPDATE users SET password_hash = ? WHERE email = ?"),
+            (password_hash, email),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+    except Exception as e:
+        app.logger.error(f"Error updating password for {email}: {e}")
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
 
 # ------------------------------------------------------
 #                  OTP HELPER FUNCTIONS
@@ -1090,6 +1108,66 @@ def verify_signup_otp():
     else:
         return jsonify({"status": "error", "message": message}), 401
 
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        data = request.get_json()
+        if not data:
+            return jsonify({"status": "error", "message": "Invalid request."}), 400
+
+        email = data.get("email", "").strip().lower()
+        if not email:
+            return jsonify({"status": "error", "message": "Email is required."}), 400
+
+        user = get_user_by_email(email)
+        if not user:
+            # Don't reveal whether the email exists — generic response either way
+            return jsonify({"status": "otp_sent", "email": email})
+
+        otp = generate_otp()
+        email_sent = send_otp_email(email, otp)
+        save_otp(email, otp, 'reset')
+
+        if email_sent:
+            return jsonify({"status": "otp_sent", "email": email})
+        else:
+            return jsonify({
+                "status": "otp_sent",
+                "email": email,
+                "warning": "Email failed to send, but verification code generated (Check server console)."
+            })
+
+    return render_template("forgot_password.html")
+
+
+@app.route("/verify-reset-otp", methods=["POST"])
+def verify_reset_otp():
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid request."}), 400
+
+    email = data.get("email", "").strip().lower()
+    otp = data.get("otp", "").strip()
+    new_password = data.get("new_password", "")
+    confirm_password = data.get("confirm_password", "")
+
+    if not email or not otp or not new_password or not confirm_password:
+        return jsonify({"status": "error", "message": "All fields are required."}), 400
+    if len(new_password) < 8:
+        return jsonify({"status": "error", "message": "Password must be at least 8 characters long."}), 400
+    if new_password != confirm_password:
+        return jsonify({"status": "error", "message": "Passwords do not match."}), 400
+
+    success, message = verify_otp_logic(email, otp, 'reset')
+    if not success:
+        return jsonify({"status": "error", "message": message}), 401
+
+    user = get_user_by_email(email)
+    if not user:
+        return jsonify({"status": "error", "message": "Account not found."}), 404
+
+    update_user_password(email, new_password)
+    return jsonify({"status": "success", "redirect": url_for("login")})
 
 @app.route("/logout", methods=["POST", "GET"])
 def logout():

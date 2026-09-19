@@ -174,6 +174,7 @@
     function initAuthLogic() {
         const loginForm = document.getElementById('login-form');
         const signupForm = document.getElementById('signup-form');
+        const forgotForm = document.getElementById('forgot-password-form');
         const errorBox = document.getElementById('auth-error-box');
 
         function showError(msg) {
@@ -313,7 +314,7 @@
                         const email = document.getElementById('email').value;
                         const password = document.getElementById('password').value;
                         const otp = document.getElementById('otp').value;
-                        
+
                         const result = await postData('/verify-signup-otp', { username, email, password, otp });
 
                         if (result.status === 'success') {
@@ -334,6 +335,79 @@
                 backToSignupBtn.addEventListener('click', () => {
                     otpStage.style.display = 'none';
                     credentialsStage.style.display = 'block';
+                    hideError();
+                });
+            }
+        }
+
+        // --- Forgot Password Logic ---
+        if (forgotForm) {
+            const emailStage = document.getElementById('email-stage');
+            const resetStage = document.getElementById('reset-stage');
+            const verifyResetBtn = document.getElementById('verify-reset-btn');
+            const backToEmailBtn = document.getElementById('back-to-email');
+            let savedEmail = '';
+
+            forgotForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideError();
+                const btn = e.submitter;
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Sending...';
+
+                try {
+                    const email = document.getElementById('email').value;
+                    const result = await postData('/forgot-password', { email });
+
+                    if (result.status === 'otp_sent') {
+                        savedEmail = email;
+                        emailStage.style.display = 'none';
+                        resetStage.style.display = 'block';
+                    } else {
+                        showError(result.message || 'Something went wrong.');
+                    }
+                } catch (err) {
+                    showError('Server error. Please try again.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            });
+
+            if (verifyResetBtn) {
+                verifyResetBtn.addEventListener('click', async () => {
+                    hideError();
+                    verifyResetBtn.disabled = true;
+                    verifyResetBtn.textContent = 'Resetting...';
+
+                    try {
+                        const otp = document.getElementById('otp').value;
+                        const new_password = document.getElementById('new_password').value;
+                        const confirm_password = document.getElementById('confirm_new_password').value;
+
+                        const result = await postData('/verify-reset-otp', {
+                            email: savedEmail, otp, new_password, confirm_password
+                        });
+
+                        if (result.status === 'success') {
+                            window.location.href = result.redirect;
+                        } else {
+                            showError(result.message || 'Reset failed.');
+                        }
+                    } catch (err) {
+                        showError('Reset failed.');
+                    } finally {
+                        verifyResetBtn.disabled = false;
+                        verifyResetBtn.textContent = 'Reset Password';
+                    }
+                });
+            }
+
+            if (backToEmailBtn) {
+                backToEmailBtn.addEventListener('click', () => {
+                    resetStage.style.display = 'none';
+                    emailStage.style.display = 'block';
                     hideError();
                 });
             }
