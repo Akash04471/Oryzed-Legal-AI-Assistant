@@ -598,11 +598,24 @@
         setTimeout(() => DOM.btnSend.classList.remove('sending'), 600);
 
         try {
-            const response = await fetch(`/api/chat/${AppState.currentSessionId}/message`, {
+            let response = await fetch(`/api/chat/${AppState.currentSessionId}/message`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message })
             });
+
+            // Auto-heal: If session was deleted or not found (404), create a fresh session & retry
+            if (response.status === 404) {
+                console.warn(`Session ${AppState.currentSessionId} not found (404). Automatically creating a new session...`);
+                await createNewSession();
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                response = await fetch(`/api/chat/${AppState.currentSessionId}/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+            }
 
             const data = await response.json();
 

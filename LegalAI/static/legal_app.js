@@ -641,7 +641,15 @@
                     options.headers = { 'Content-Type': 'application/json' };
                     options.body = JSON.stringify({ message: text });
                 }
-                const res = await apiFetch(`/api/chat/${S.sessionId}/message`, options);
+                let res = await apiFetch(`/api/chat/${S.sessionId}/message`, options);
+                
+                // Auto-heal: If session is missing or returned 404, automatically create a new session and retry
+                if (res.status === 404) {
+                    console.warn(`Session ${S.sessionId} not found (404). Automatically creating a new session...`);
+                    await newSession();
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    res = await apiFetch(`/api/chat/${S.sessionId}/message`, options);
+                }
                 const data = await res.json();
                 hideThinking(thinkBub);
 

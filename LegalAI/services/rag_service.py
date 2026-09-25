@@ -25,10 +25,15 @@ DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 
+_cached_agent = None
+_cached_agent_key = None
+
 def _run_llm_completion(prompt: str, system_prompt: str = None, temperature: float = 0.1) -> str:
     """
     Executes completion using Google Gemini / Gemma API or Groq depending on available API key format.
+    Caches the Agent instance to avoid expensive re-initialization overhead per call.
     """
+    global _cached_agent, _cached_agent_key
     api_key = (
         os.environ.get("GEMINI_API_KEY")
         or os.environ.get("GOOGLE_API_KEY")
@@ -61,11 +66,15 @@ def _run_llm_completion(prompt: str, system_prompt: str = None, temperature: flo
     os.environ["GOOGLE_API_KEY"] = api_key
     model_name = os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
     
-    agent = Agent(
-        model=Gemini(id=model_name, api_key=api_key),
-        description=system_prompt if system_prompt else "You are a specialized Legal AI Assistant."
-    )
-    response = agent.run(prompt)
+    agent_cache_id = f"{model_name}:{api_key}:{system_prompt[:30] if system_prompt else ''}"
+    if _cached_agent is None or _cached_agent_key != agent_cache_id:
+        _cached_agent = Agent(
+            model=Gemini(id=model_name, api_key=api_key),
+            description=system_prompt if system_prompt else "You are a specialized Legal AI Assistant."
+        )
+        _cached_agent_key = agent_cache_id
+
+    response = _cached_agent.run(prompt)
     return str(response.content)
 
 
@@ -177,7 +186,7 @@ def generate_answer(user_message: str, chat_history_context: str = None) -> dict
     context_text = "\n".join(context_parts)
     
     system_prompt = """You are LegalAI, an expert legal assistant with deep knowledge of Indian law.
-Your task is to answer the user's legal question using the provided Context.
+Your task is to answer the user's legal question using the provided Context and your legal knowledge.
 
 STRICT RULES:
 1. You are EXCLUSIVELY a Legal AI Assistant. 
@@ -189,8 +198,8 @@ STRICT RULES:
    (5) Step-by-Step Legal Analysis
    (6) Judicial Precedents
    (7) Conclusion/Judgment
-3. IF THE CONTEXT IS IRRELEVANT, write a standard paragraph explaining that the specific details are not in the database, and provide your general legal knowledge on the topic.
-4. CITE YOUR SOURCES explicitly using the Document Source metadata provided in the context.
+3. NEVER state, mention, or output phrases like "The specific details are not contained in the provided database", "not in the context", or mention "database/Qdrant/search". Seamlessly provide your authoritative, expert legal analysis directly.
+4. CITE YOUR SOURCES explicitly using the Document Source metadata provided in the context when relevant.
 """
 
     prompt = f"Context:\n{context_text}\n\nQuestion: {user_message}\n\nProvide the structured legal analysis:"
@@ -216,13 +225,13 @@ def _generate_fallback_answer(user_message: str, chat_history_context: str, scor
     """
     logger.info("Executing graceful fallback logic.")
     system_prompt = """You are LegalAI, an expert legal assistant with deep knowledge of Indian law.
-You must answer the query using your general legal knowledge base because specific documents were not found.
+You must answer the query using your comprehensive legal knowledge base.
 
 STRICT RULES:
 1. Provide a professional, direct legal analysis based on established Indian Law, IPC, CrPC, BNSS, etc.
 2. DO NOT use rigid headers like "Facts of the Case" unless the user explicitly provided facts in their prompt.
-3. If the user asks about a specific obscure case you do not know, DO NOT hallucinate facts. Gracefully state that you do not have the specific facts for that case, and provide the general legal principles that apply.
-4. Do NOT mention "database", "context", "search failed", or "Qdrant".
+3. If the user asks about a specific obscure case you do not know, DO NOT hallucinate facts. Provide the general legal principles that apply.
+4. NEVER mention "database", "context", "provided database", "search failed", "documents not found", or "Qdrant". Simply deliver a direct, expert legal response.
 """
 
     prompt = f"Question: {user_message}\n\nProvide your professional legal analysis:"
