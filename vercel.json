@@ -1,12 +1,14 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.py?__path__=/$1" }
+    { "source": "/(.*)", "destination": "/api/index.py?__path=/$1" }
   ],
   "functions": {
     "api/index.py": {
       "includeFiles": "LegalAI/**",
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 1024
     }
   }
 }
+

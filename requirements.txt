@@ -2,6 +2,8 @@ flask
 gunicorn
 python-dotenv
 agno
+google-genai
+google-generativeai
 groq
 duckduckgo-search
 ddgs
@@ -16,9 +18,6 @@ Pillow
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
-pymupdf
 qdrant-client
 openai
 tiktoken
-#easyocr
- 

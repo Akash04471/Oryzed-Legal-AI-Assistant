@@ -7,23 +7,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --bg-primary: #FAF9F6;        /* Elegant Off-White */
-    --bg-card: #FFFFFF;           /* Pure White */
-    --color-navy: #0A2540;        /* Deep Premium Navy */
-    --color-navy-light: #1E3E62;
-    --color-accent: #2563EB;      /* AI-inspired Blue */
-    --color-border: #E5E7EB;       /* Subtle border */
+    --bg-primary: #040914;        /* Dark background, matching Home */
+    --bg-secondary: #0A1121;
+    --bg-card: #0F172A;           /* Dark card background */
+    --color-navy: #E2E8F0;        /* Light heading text (on dark bg) */
+    --color-navy-light: #CBD5E1;
+    --color-accent: #3B82F6;
+    --color-border: #1E293B;
+    --border-light: #1E293B;
     
-    --text-primary: #111827;      /* Dark grey text */
-    --text-secondary: #374151;    /* Secondary slate text — WCAG AA on off-white */
-    --text-muted: #6B7280;         /* Muted grey */
-    --text-light: #F9FAFB;         /* Light text on dark bg */
+    --text-primary: #F8FAFC;      /* Light body text */
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --text-light: #040914;        /* Dark text, used on light-colored buttons */
     
     --font-heading: 'Audit Sans', 'Outfit', 'Plus Jakarta Sans', 'Inter', sans-serif;
     --font-body: 'Plus Jakarta Sans', 'Inter', sans-serif;
     
-    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --shadow-lg: 0 20px 25px -5px rgba(10, 37, 64, 0.05), 0 10px 10px -5px rgba(10, 37, 64, 0.02);
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.35), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
 *,
@@ -100,7 +102,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0.8rem 2rem;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-light);
     border-radius: 99px;

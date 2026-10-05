@@ -1651,6 +1651,10 @@ th {
     z-index: 10;
 }
 
+.attachment-pill[hidden] {
+    display: none !important;
+}
+
 /* Actions buttons (mic, plus, send) */
 .btn-action {
     width: 36px;
