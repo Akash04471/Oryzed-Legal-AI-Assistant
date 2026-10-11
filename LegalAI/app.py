@@ -982,6 +982,11 @@ def terms_and_conditions():
     return render_template("terms.html", username=session.get("username", ""))
 
 
+@app.route("/about")
+def about_us():
+    return render_template("about.html", username=session.get("username", ""))
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if "user_id" in session:

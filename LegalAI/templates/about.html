@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us | ORYZED</title>
+    <meta name="description" content="About Oryzed — Making Legal Technology More Accessible." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/all.min.css') }}?v=20260319" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_final.css') }}?v=20261011" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='terms.css') }}?v=20261011" />
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+</head>
+
+<body>
+    <!-- ═══ FIXED HAMBURGER VISUAL ANCHOR ═══ -->
+    <a href="/" id="hamburgerBtn" class="hamburger-btn" aria-label="Return to Research"
+        style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </a>
+
+    <!-- ═══ EXQUISITE FLOATING NAVBAR ═══ -->
+    <nav class="land-nav" aria-label="Main navigation">
+        <div class="nav-brand">
+            <a href="/"><img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="land-logo-img" alt="Legal AI Logo"></a>
+        </div>
+        <div class="nav-links exquisite-nav">
+            <a href="/#heroSection" class="nav-link">Home</a>
+            <a href="/#featuresSection" class="nav-link">Capabilities</a>
+            <a href="/about" class="nav-link" style="color: var(--color-accent); font-weight: 700;">About</a>
+            <a href="/terms" class="nav-link">Terms</a>
+            {% if not username %}
+            <a href="/login" class="nav-link">Login</a>
+            {% else %}
+            <a href="/profile" class="nav-link">Profile</a>
+            {% endif %}
+        </div>
+        <a href="/" class="btn-nav-cta" aria-label="Start research" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+            Start Research
+        </a>
+    </nav>
+
+    <main class="terms-wrap" role="main">
+        <section class="terms-hero reveal-item">
+            <div class="hero-kicker">About Oryzed</div>
+            <h1>Making Legal Technology More Accessible.</h1>
+            <p class="hero-lead">Oryzed is a Legal Tech AI startup building practical and accessible AI-powered tools for the legal community.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <p>We believe that access to technology should not be limited by the size of a law firm, the institution a student belongs to, or the ability to afford expensive legal research platforms.</p>
+            <p>Oryzed was started with this idea to make legal technology more accessible to students, researchers, lawyers, and legal professionals across India.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>What We're Building</h2>
+            <p>We are developing AI-powered tools designed specifically for legal work:</p>
+            <ul>
+                <li><strong>AI Legal Research</strong> — Search and explore case laws, statutes, and legal principles using natural language.</li>
+                <li><strong>Contract Drafting AI</strong> — A tool designed to assist with creating and customising legal contracts using structured legal resources.</li>
+                <li><strong>Judgment Summarization</strong> — Convert lengthy judgments into concise and easy-to-understand summaries, helping users save time during legal research.</li>
+            </ul>
+            <p>Our legal research tool is currently available as a working prototype, while our contract drafting and judgment summarization tools are under development.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Built for the Legal Community</h2>
+            <p>Oryzed is particularly focused on making advanced legal technology accessible to students, independent researchers, small law practices, and lawyers working in district and lower courts, while building towards wider adoption across the legal ecosystem.</p>
+            <p>We aim to keep our tools accessible during our early growth stage and develop an affordable model as the platform grows.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Law × AI × Accessibility</h2>
+            <p>Oryzed is being built at the intersection of law and technology.</p>
+            <p>We bring together legal researchers, law students, developers, AI enthusiasts, and professionals who are interested in exploring what AI can do for the legal sector.</p>
+            <p>We believe the best legal technology is built collaboratively with technology supporting legal professionals rather than replacing them.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Our Vision</h2>
+            <p>To build an accessible legal AI ecosystem that makes legal research, drafting, and understanding simpler, faster, and more accessible.</p>
+            <p><strong>Building the future of legal technology, together.</strong></p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Officially Recognised</h2>
+            <p>Oryzed is registered as a Micro, Small and Medium Enterprise (MSME) under the Ministry of Micro, Small and Medium Enterprises, Government of India.</p>
+            <p><strong>UDYAM Registration No.:</strong> UDYAM-KR-03-0533403</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Want to Build With Us?</h2>
+            <p>We're always interested in connecting with people who are passionate about AI, Legal Tech, software development, legal research, and innovation.</p>
+            <p>If you have an idea, a technical skill, legal expertise, or simply an interest in exploring AI in the legal sector, let's connect.</p>
+        </section>
+    </main>
+
+    <button id="scrollTopBtn" class="scroll-top" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+    </button>
+
+    <script src="{{ url_for('static', filename='terms.js') }}" defer></script>
+</body>
+
+</html>
