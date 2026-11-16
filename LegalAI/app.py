@@ -986,6 +986,10 @@ def terms_and_conditions():
 def about_us():
     return render_template("about.html", username=session.get("username", ""))
 
+@app.route("/careers")
+def careers():
+    return render_template("careers.html", username=session.get("username", ""))
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

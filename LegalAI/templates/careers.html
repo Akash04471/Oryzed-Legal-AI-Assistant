@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Careers | ORYZED</title>
+    <meta name="description" content="Careers at ORYZED. Build the future of legal intelligence." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/all.min.css') }}?v=20260319" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='legal_style_final.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='terms.css') }}" />
+</head>
+
+<body>
+    <a href="/" id="hamburgerBtn" class="hamburger-btn" aria-label="Return to Research"
+        style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </a>
+
+    <nav class="land-nav" aria-label="Main navigation">
+        <div class="nav-brand">
+            <a href="/"><img src="{{ url_for('static', filename='Oryzed_Logo.png') }}" class="land-logo-img" alt="Legal AI Logo"></a>
+        </div>
+        <div class="nav-links exquisite-nav">
+            <a href="/#heroSection" class="nav-link">Home</a>
+            <a href="/#featuresSection" class="nav-link">Capabilities</a>
+            <a href="/about" class="nav-link">About</a>
+            <a href="/careers" class="nav-link" style="color: var(--color-accent); font-weight: 700;">Careers</a>
+            <a href="/terms" class="nav-link">Terms</a>
+            {% if not username %}
+            <a href="/login" class="nav-link">Login</a>
+            {% else %}
+            <a href="/profile" class="nav-link">Profile</a>
+            {% endif %}
+        </div>
+        <a href="/" class="btn-nav-cta" aria-label="Start research" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+            Start Research
+        </a>
+    </nav>
+
+    <main class="terms-wrap" role="main">
+        <section class="terms-hero reveal-item">
+            <div class="hero-kicker">Careers at ORYZED</div>
+            <h1>Build the Future of Legal Intelligence</h1>
+            <p class="hero-lead">At ORYZED, we are engineering precision legal AI that synthesizes statutes, precedents, and complex case files in seconds. We bridge advanced AI research with Indian jurisprudence, giving advocates, law firms, and legal teams instantaneous, court-ready insights.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Join Our Team</h2>
+            <p>We are always looking for passionate people to help us build the next generation of legal tech. Whether you are an AI/NLP engineer, full-stack developer, legal researcher, or product designer, we would love to hear from you.</p>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>Why Work With Us?</h2>
+            <ul>
+                <li><strong>High Impact:</strong> Build AI tools shaping the future of legal research.</li>
+                <li><strong>Complex Challenges:</strong> Work on advanced vector search, zero-retention privacy models, and deep semantic analysis.</li>
+                <li><strong>Flexible Work:</strong> Remote and hybrid opportunities with a collaborative team culture.</li>
+            </ul>
+        </section>
+
+        <section class="terms-card reveal-item">
+            <h2>How to Apply</h2>
+            <p>We don’t have rigid application forms, so just reach out to us directly!</p>
+            <p>If you are interested in joining ORYZED, send your Resume / CV and a short note about what you’d like to work on to:</p>
+            <p><strong>Email:</strong> <a href="mailto:oryzedai@gmail.com">oryzedai@gmail.com</a></p>
+            <p><strong>Email Subject:</strong> Internship - Your Name</p>
+            <p>We review every application and will get back to you if there’s a fit.</p>
+        </section>
+    </main>
+
+    <button id="scrollTopBtn" class="scroll-top" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+    </button>
+
+    <script src="{{ url_for('static', filename='terms.js') }}" defer></script>
+</body>
+
+</html>
